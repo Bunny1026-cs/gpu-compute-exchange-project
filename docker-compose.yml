@@ -1,0 +1,116 @@
+# =============================================================
+# GPU Compute Exchange — Docker Compose (Full Stack)
+# =============================================================
+
+services:
+  # -----------------------------------------------------------
+  # Backend API  (Node.js + Express)
+  # -----------------------------------------------------------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: gpu_exchange_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/gpuexchange}
+      - JWT_SECRET=${JWT_SECRET:-local-development-secret-change-me-before-production}
+      - SCHEDULER_INTERVAL_MS=5000
+      - WORKER_API_KEY=${WORKER_API_KEY:-local-worker-key-change-me}
+      - BLOCKCHAIN_RPC_URL=http://hardhat-node:8545
+      - BLOCKCHAIN_PRIVATE_KEY=${BLOCKCHAIN_PRIVATE_KEY:-0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d}
+      - ESCROW_CONTRACT_ADDRESS=${ESCROW_CONTRACT_ADDRESS:-0x5FbDB2315678afecb367f032d93f642f64180aa3}
+      - BLOCKCHAIN_DEMO_MODE=${BLOCKCHAIN_DEMO_MODE:-true}
+      - DEMO_CONSUMER_PRIVATE_KEY=${DEMO_CONSUMER_PRIVATE_KEY:-0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a}
+      - DEMO_ESCROW_AMOUNT_WEI=${DEMO_ESCROW_AMOUNT_WEI:-1000000000000000}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      hardhat-node:
+        condition: service_started
+    restart: unless-stopped
+
+  # -----------------------------------------------------------
+  # Frontend  (React / Vite + nginx)
+  # -----------------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:5000/api
+    container_name: gpu_exchange_frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # -----------------------------------------------------------
+  # GPU Worker  (Python)
+  # -----------------------------------------------------------
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    container_name: gpu_exchange_worker
+    environment:
+      - BACKEND_URL=http://backend:5000/api
+      - WORKER_API_KEY=${WORKER_API_KEY:-local-worker-key-change-me}
+      - POLL_INTERVAL_SECONDS=5
+      - MIN_EXECUTION_TIME=2
+      - MAX_EXECUTION_TIME=10
+    depends_on:
+      - backend
+    restart: unless-stopped
+    # For real GPU execution, uncomment:
+    # runtime: nvidia
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  # -----------------------------------------------------------
+  # Local Hardhat Node  (Blockchain)
+  # -----------------------------------------------------------
+  hardhat-node:
+    build:
+      context: ./blockchain
+      dockerfile: Dockerfile
+    container_name: gpu_exchange_hardhat
+    ports:
+      - "8545:8545"
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: gpu_exchange_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  # -----------------------------------------------------------
+  # -----------------------------------------------------------
+  # Redis (Job Queue) — Future
+  # -----------------------------------------------------------
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: gpu_exchange_redis
+  #   ports:
+  #     - "6379:6379"
+
+volumes:
+  mongodata:

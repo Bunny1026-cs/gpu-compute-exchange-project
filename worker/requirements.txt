@@ -1,0 +1,23 @@
+# GPU Compute Exchange — Python Worker
+# Install: pip install -r requirements.txt
+
+# Core dependencies
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Queue (future — for Redis-based job queue)
+# redis>=5.0.8
+# rq>=1.16.2
+
+# Data validation (future — for strict payload schemas)
+# pydantic>=2.8.2
+
+# IPFS (future — for direct IPFS upload from worker)
+# ipfshttpclient>=0.8.0a2
+
+# Docker SDK (future — for real GPU container execution)
+# docker>=7.1.0
+
+# ML frameworks (added per job image, not base worker)
+# torch>=2.3.1
+# numpy>=2.0.1

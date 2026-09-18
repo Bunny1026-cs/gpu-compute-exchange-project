@@ -1,0 +1,36 @@
+{
+  "name": "gpu-compute-exchange-backend",
+  "version": "0.1.0",
+  "description": "GPU Compute Exchange — Node.js/Express API backend",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "validate-models": "node scripts/validate-models.js",
+    "test:scheduler": "node scripts/test-scheduler.js",
+    "test:api": "node scripts/test-api.js",
+    "test:blockchain": "node scripts/test-blockchain.js",
+    "test": "npm run validate-models && npm run test:scheduler"
+  },
+  "keywords": [
+    "gpu",
+    "compute",
+    "marketplace",
+    "express",
+    "blockchain"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.17.0",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.9.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

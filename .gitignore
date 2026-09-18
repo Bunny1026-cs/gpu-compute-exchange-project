@@ -1,0 +1,80 @@
+# ============================================================
+# Root .gitignore — gpu-compute-exchange monorepo
+# ============================================================
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+
+# Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+
+# Docker
+.docker/
+
+# Hardhat / Blockchain
+blockchain/cache/
+blockchain/artifacts/
+blockchain/deployments/
+
+# IPFS
+.ipfs/
+backend/.ipfs-mock/
+
+# Paper / research (keep out of repo)
+paper-revised/
+results-assets/
+scripts/
+BDGCE_paper_revised.tex
+*.tex
+*.cls
+*.bbl
+*.blg
+*.aux
+*.bib
+
+# Misc
+*.tmp
+*.bak
+coverage/
+.nyc_output/
+.npm-cache/

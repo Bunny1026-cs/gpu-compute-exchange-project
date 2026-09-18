@@ -1,0 +1,20 @@
+{
+  "name": "gpu-compute-exchange-blockchain",
+  "version": "0.1.0",
+  "description": "GPU Compute Exchange — Hardhat smart contract project",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "node": "hardhat node",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "start:local": "sh scripts/start-local-node.sh",
+    "clean": "hardhat clean"
+  },
+  "keywords": ["gpu", "solidity", "hardhat", "ethereum", "escrow"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.6"
+  }
+}

@@ -1,0 +1,222 @@
+/**
+ * pages/ProviderDashboard.jsx
+ * Provider dashboard — manage GPUs
+ */
+import { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { gpuAPI } from "../services/api";
+import Alert from "../components/Alert";
+import Spinner from "../components/Spinner";
+
+const EMPTY_FORM = { gpuModel: "", gpuMemory: "", cudaVersion: "", pricePerHour: "", availability: true, status: "ACTIVE" };
+const GPU_STATUSES = ["ACTIVE", "INACTIVE", "BUSY"];
+
+export default function ProviderDashboard() {
+  const { user } = useAuth();
+  const [gpus, setGpus]         = useState([]);
+  const [loading, setL]         = useState(true);
+  const [error, setError]       = useState("");
+  const [success, setSuccess]   = useState("");
+
+  // Form state — null = hidden, {} = new, {_id:...} = editing
+  const [formMode, setFormMode] = useState(null);
+  const [form, setForm]         = useState(EMPTY_FORM);
+  const [saving, setSaving]     = useState(false);
+  const [formError, setFE]      = useState("");
+
+  const fetchMyGPUs = useCallback(async () => {
+    setL(true); setError("");
+    try {
+      const res = await gpuAPI.list("?mine=true");
+      setGpus(res.data || []);
+    } catch (err) { setError(err.message); }
+    finally { setL(false); }
+  }, []);
+
+  useEffect(() => { fetchMyGPUs(); }, [fetchMyGPUs]);
+
+  const openNew  = () => { setForm(EMPTY_FORM); setFormMode("new"); setFE(""); };
+  const openEdit = (gpu) => {
+    setForm({ gpuModel: gpu.gpuModel, gpuMemory: gpu.gpuMemory, cudaVersion: gpu.cudaVersion,
+              pricePerHour: gpu.pricePerHour, availability: gpu.availability, status: gpu.status });
+    setFormMode(gpu._id); setFE("");
+  };
+  const closeForm = () => { setFormMode(null); setFE(""); };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm(f => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!form.gpuModel.trim()) return setFE("GPU model is required.");
+    if (!form.cudaVersion.trim()) return setFE("CUDA version is required.");
+    if (!form.pricePerHour) return setFE("Price per hour is required.");
+    setSaving(true); setFE("");
+    try {
+      const payload = { ...form, gpuMemory: Number(form.gpuMemory), pricePerHour: Number(form.pricePerHour) };
+      if (formMode === "new") {
+        await gpuAPI.create(payload);
+        setSuccess("GPU registered successfully!");
+      } else {
+        await gpuAPI.update(formMode, payload);
+        setSuccess("GPU updated successfully!");
+      }
+      closeForm();
+      fetchMyGPUs();
+    } catch (err) { setFE(err.message); }
+    finally { setSaving(false); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this GPU? This cannot be undone.")) return;
+    try {
+      await gpuAPI.delete(id);
+      setSuccess("GPU deleted.");
+      fetchMyGPUs();
+    } catch (err) { setError(err.message); }
+  };
+
+  const toggleAvailability = async (gpu) => {
+    try {
+      await gpuAPI.update(gpu._id, { availability: !gpu.availability });
+      setSuccess(`GPU marked as ${!gpu.availability ? "Available" : "Unavailable"}.`);
+      fetchMyGPUs();
+    } catch (err) { setError(err.message); }
+  };
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <h1 className="page-title">Provider Dashboard</h1>
+        <p className="page-subtitle">Manage your GPUs — welcome, <strong>{user?.name}</strong></p>
+      </div>
+
+      <Alert type="success" message={success} onClose={() => setSuccess("")} />
+      <Alert type="error"   message={error}   onClose={() => setError("")} />
+
+      {/* Stats strip */}
+      <div className="stats-row">
+        <div className="stat-card">
+          <div className="stat-value">{gpus.length}</div>
+          <div className="stat-label">Registered GPUs</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{gpus.filter(g => g.availability).length}</div>
+          <div className="stat-label">Available</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{gpus.filter(g => g.status === "ACTIVE").length}</div>
+          <div className="stat-label">Active</div>
+        </div>
+      </div>
+
+      <div className="section-header">
+        <h2 className="section-label">My GPUs</h2>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn btn-ghost btn-sm" onClick={fetchMyGPUs} disabled={loading}>↻ Refresh</button>
+          <button className="btn btn-primary btn-sm" onClick={openNew}>+ Register GPU</button>
+        </div>
+      </div>
+
+      {loading && <Spinner text="Loading your GPUs…" />}
+
+      {!loading && gpus.length === 0 && (
+        <div className="empty-state">
+          <span>🖥️</span>
+          <p>No GPUs registered yet.</p>
+          <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={openNew}>Register Your First GPU</button>
+        </div>
+      )}
+
+      {/* GPU cards */}
+      <div className="gpu-grid provider">
+        {gpus.map((gpu) => (
+          <div key={gpu._id} className="gpu-card provider-gpu">
+            <div className="gpu-card-header">
+              <span className="gpu-model">{gpu.gpuModel}</span>
+              <span className={`gpu-badge ${gpu.availability ? "available" : "unavailable"}`}>
+                {gpu.availability ? "Listed" : "Unlisted"}
+              </span>
+            </div>
+            <div className="gpu-specs">
+              <span>💾 {gpu.gpuMemory} GB</span>
+              <span>⚡ CUDA {gpu.cudaVersion}</span>
+              <span>📊 {gpu.status}</span>
+            </div>
+            <div className="gpu-price">₹{gpu.pricePerHour}/hr</div>
+            <div className="gpu-actions">
+              <button className="btn btn-ghost btn-xs" onClick={() => openEdit(gpu)}>✏️ Edit</button>
+              <button className="btn btn-ghost btn-xs" onClick={() => toggleAvailability(gpu)}>
+                {gpu.availability ? "⏸ Unlist" : "▶ List"}
+              </button>
+              <button className="btn btn-danger btn-xs" onClick={() => handleDelete(gpu._id)}>🗑 Delete</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* GPU Form Modal */}
+      {formMode !== null && (
+        <div className="modal-overlay" onClick={closeForm}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{formMode === "new" ? "Register New GPU" : "Edit GPU"}</h3>
+              <button className="btn-clear" onClick={closeForm}>✕</button>
+            </div>
+            <Alert type="error" message={formError} onClose={() => setFE("")} />
+            <form onSubmit={handleSave} className="auth-form">
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">GPU Model *</label>
+                  <input className="form-input" name="gpuModel" value={form.gpuModel} onChange={handleChange} placeholder="e.g. RTX 4090" required disabled={saving} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Memory (GB) *</label>
+                  <input className="form-input" type="number" name="gpuMemory" value={form.gpuMemory} onChange={handleChange} placeholder="24" min="1" required disabled={saving} />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">CUDA Version *</label>
+                  <input className="form-input" name="cudaVersion" value={form.cudaVersion} onChange={handleChange} placeholder="12.2" required disabled={saving} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Price / Hour (₹) *</label>
+                  <input className="form-input" type="number" name="pricePerHour" value={form.pricePerHour} onChange={handleChange} placeholder="100" min="0" required disabled={saving} />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Status</label>
+                  <select className="form-input" name="status" value={form.status} onChange={handleChange} disabled={saving}>
+                    {GPU_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="form-group" style={{ justifyContent: "center" }}>
+                  <label className="form-label">List on Marketplace</label>
+                  <label className="toggle-label">
+                    <input type="checkbox" name="availability" checked={form.availability} onChange={handleChange} disabled={saving} />
+                    <span className="toggle-text">{form.availability ? "Available" : "Unavailable"}</span>
+                  </label>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+                <button className="btn btn-primary" type="submit" disabled={saving}>
+                  {saving ? "Saving…" : formMode === "new" ? "Register GPU" : "Save Changes"}
+                </button>
+                <button className="btn btn-ghost" type="button" onClick={closeForm} disabled={saving}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className="quick-links">
+        <Link to="/provider/jobs" className="btn btn-ghost">📋 Jobs on My GPUs</Link>
+      </div>
+    </div>
+  );
+}

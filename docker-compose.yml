@@ -16,21 +16,26 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=5000
+      # Development-only /api/dev/* routes. Off unless explicitly enabled
+      # (e.g. ENABLE_DEV_ROUTES=true in a root .env for the local demo).
+      - ENABLE_DEV_ROUTES=${ENABLE_DEV_ROUTES:-false}
       - MONGODB_URI=${MONGODB_URI:-mongodb://mongodb:27017/gpuexchange}
       - JWT_SECRET=${JWT_SECRET:-local-development-secret-change-me-before-production}
       - SCHEDULER_INTERVAL_MS=5000
       - WORKER_API_KEY=${WORKER_API_KEY:-local-worker-key-change-me}
       - BLOCKCHAIN_RPC_URL=http://hardhat-node:8545
       - BLOCKCHAIN_PRIVATE_KEY=${BLOCKCHAIN_PRIVATE_KEY:-0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d}
-      - ESCROW_CONTRACT_ADDRESS=${ESCROW_CONTRACT_ADDRESS:-0x5FbDB2315678afecb367f032d93f642f64180aa3}
+      - ESCROW_CONTRACT_ADDRESS=${ESCROW_CONTRACT_ADDRESS:-0x5FbDB2315678afecb367f032d93F642f64180aa3}
       - BLOCKCHAIN_DEMO_MODE=${BLOCKCHAIN_DEMO_MODE:-true}
       - DEMO_CONSUMER_PRIVATE_KEY=${DEMO_CONSUMER_PRIVATE_KEY:-0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a}
       - DEMO_ESCROW_AMOUNT_WEI=${DEMO_ESCROW_AMOUNT_WEI:-1000000000000000}
     depends_on:
       mongodb:
         condition: service_healthy
+      # P1-11: wait until the escrow contract is actually deployed (see the
+      # hardhat-node healthcheck); the backend initialises blockchain once.
       hardhat-node:
-        condition: service_started
+        condition: service_healthy
     restart: unless-stopped
 
   # -----------------------------------------------------------
@@ -86,6 +91,15 @@ services:
     container_name: gpu_exchange_hardhat
     ports:
       - "8545:8545"
+    environment:
+      - ESCROW_CONTRACT_ADDRESS=${ESCROW_CONTRACT_ADDRESS:-0x5FbDB2315678afecb367f032d93F642f64180aa3}
+    # P1-11: healthy only once contract bytecode exists at the address above.
+    healthcheck:
+      test: ["CMD", "node", "scripts/healthcheck.js"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
     restart: unless-stopped
 
   mongodb:

@@ -19,6 +19,12 @@ const Job = require("../models/Job");
 const GPU = require("../models/GPU");
 const { JOB_STATUS } = require("../models/Job");
 const ipfsService = require("../services/ipfsService");
+const { parseCuda } = require("../scheduler/matcher");
+
+/** true when a requirement field was supplied (null/undefined/"" = absent) */
+const isPresent = (v) => v !== null && v !== undefined && String(v).trim() !== "";
+/** finite number >= 0 (accepts numeric strings, as before) */
+const isNonNegativeNumber = (v) => Number.isFinite(Number(v)) && Number(v) >= 0 && String(v).trim() !== "";
 
 // ── Controllers ───────────────────────────────────────────────
 
@@ -47,8 +53,15 @@ const createJob = async (req, res) => {
     if (Number(price) < 0) {
       return res.status(400).json({ success: false, message: "price cannot be negative." });
     }
+    if (!isNonNegativeNumber(price)) {
+      return res.status(400).json({ success: false, message: "price must be a number." });
+    }
+    if (taskType !== undefined && taskType !== null && typeof taskType !== "string") {
+      return res.status(400).json({ success: false, message: "taskType must be a string." });
+    }
 
-    // Validate requirements if provided
+    // Validate requirements if provided (P1-1: malformed values are rejected,
+    // never silently ignored by the matcher)
     if (requirements !== undefined && requirements !== null) {
       if (typeof requirements !== "object" || Array.isArray(requirements)) {
         return res.status(400).json({ success: false, message: "requirements must be an object." });
@@ -58,6 +71,18 @@ const createJob = async (req, res) => {
       }
       if (requirements.maximumPrice !== undefined && Number(requirements.maximumPrice) < 0) {
         return res.status(400).json({ success: false, message: "maximumPrice cannot be negative." });
+      }
+      if (isPresent(requirements.requiredGpuMemory) && !isNonNegativeNumber(requirements.requiredGpuMemory)) {
+        return res.status(400).json({ success: false, message: "requiredGpuMemory must be a number." });
+      }
+      if (isPresent(requirements.maximumPrice) && !isNonNegativeNumber(requirements.maximumPrice)) {
+        return res.status(400).json({ success: false, message: "maximumPrice must be a number." });
+      }
+      if (isPresent(requirements.requiredCudaVersion) && !parseCuda(requirements.requiredCudaVersion)) {
+        return res.status(400).json({
+          success: false,
+          message: "requiredCudaVersion must look like 12, 12.2 or 12.2.1.",
+        });
       }
     }
 
@@ -213,7 +238,11 @@ const getJobResult = async (req, res) => {
     // Retrieval failure must not hide the job metadata: a CID can point to a
     // remote gateway that is temporarily unavailable.
     let result = null;
-    if (job.ipfsCid && ipfsService.isAvailable()) {
+    // P0-2: a stored CID that fails validation is never used for storage
+    // access; the metadata is still returned with result = null.
+    if (job.ipfsCid && ipfsService.isAvailable() && !ipfsService.isValidCid(job.ipfsCid)) {
+      console.warn(`getJobResult: job ${job._id} has an invalid stored ipfsCid; content not retrieved.`);
+    } else if (job.ipfsCid && ipfsService.isAvailable()) {
       const stored = await ipfsService.retrieve(job.ipfsCid);
       if (stored) {
         try {

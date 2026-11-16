@@ -41,6 +41,12 @@
  * the GPU between our read and write, the update returns null and
  * we skip that job (it stays QUEUED for the next cycle).
  *
+ * The JOB is also claimed conditionally (P0-3): it moves QUEUED → ASSIGNED
+ * only if it is still QUEUED with no GPU. If that claim fails (e.g. an
+ * overlapping cycle already assigned it), the GPU claimed in this cycle is
+ * released again. Cycles never overlap within one process: a cycle that
+ * starts while another is running returns immediately (cycleSkipped: true).
+ *
  * This module is the ONLY place that writes ASSIGNED status.
  * It does NOT execute jobs — that is Phase 8 (GPU worker).
  */
@@ -58,6 +64,34 @@ const blockchainService = require("../blockchain/blockchainService");
 
 const LOG_PREFIX = "[Scheduler]";
 
+// P0-3: in-process guard so the polling loop and the dev trigger can never
+// run two cycles at the same time.
+let cycleInProgress = false;
+
+/**
+ * releaseClaimedGpu (P0-3)
+ * Returns a GPU claimed by this cycle to the pool. Conditional on the GPU
+ * still being BUSY, so it never overrides a different state set elsewhere.
+ * Errors are logged with the manual-recovery instruction and re-thrown so
+ * the caller can count them; they are never silently ignored.
+ * @private
+ */
+async function releaseClaimedGpu(gpuId, reason) {
+  try {
+    await GPU.findOneAndUpdate(
+      { _id: gpuId, status: GPU_STATUS.BUSY },
+      { $set: { status: GPU_STATUS.ACTIVE, availability: true } }
+    );
+    console.log(`${LOG_PREFIX} GPU ${gpuId} released (${reason}).`);
+  } catch (err) {
+    console.error(
+      `${LOG_PREFIX} 🚨 CRITICAL: could not release GPU ${gpuId} (${reason}): ${err.message}\n` +
+      `    Manual intervention required: set status=ACTIVE, availability=true`
+    );
+    throw err;
+  }
+}
+
 /**
  * runSchedulerCycle
  * One full scheduling cycle. Safe to call repeatedly.
@@ -74,8 +108,28 @@ async function runSchedulerCycle() {
     blockchainAssigned:   0,
     blockchainSkipped:    0,
     blockchainFailed:     0,
+    errors:               0,      // P0-3: per-job allocation errors (logged)
   };
 
+  // P0-3: never run two cycles concurrently in this process.
+  if (cycleInProgress) {
+    console.log(`${LOG_PREFIX} A cycle is already running. Skipping this trigger.`);
+    return { ...result, cycleSkipped: true };
+  }
+  cycleInProgress = true;
+  try {
+    return await _runCycle(result);
+  } finally {
+    cycleInProgress = false;
+  }
+}
+
+/**
+ * _runCycle
+ * Body of one scheduling cycle (called only through runSchedulerCycle).
+ * @private
+ */
+async function _runCycle(result) {
   console.log(`${LOG_PREFIX} Checking queued jobs…`);
 
   // ── 1. Fetch QUEUED jobs ──────────────────────────────────────
@@ -116,62 +170,98 @@ async function runSchedulerCycle() {
     console.log(`${LOG_PREFIX} Job ${job._id}: Best match → GPU ${bestGpu._id} (${bestGpu.gpuModel}, ${bestGpu.gpuMemory}GB, ₹${bestGpu.pricePerHour}/hr)`);
 
     // ── 5. Atomic GPU claim ────────────────────────────────────
-    const claimedGpu = await GPU.findOneAndUpdate(
-      {
-        _id: bestGpu._id,
-        availability: true,
-        status: GPU_STATUS.ACTIVE,
-      },
-      {
-        $set: {
-          status: GPU_STATUS.BUSY,
-          availability: false,
+    let claimedGpu = null;
+    try {
+      claimedGpu = await GPU.findOneAndUpdate(
+        {
+          _id: bestGpu._id,
+          availability: true,
+          status: GPU_STATUS.ACTIVE,
         },
-      },
-      { returnDocument: "after" }
-    );
+        {
+          $set: {
+            status: GPU_STATUS.BUSY,
+            availability: false,
+          },
+        },
+        { returnDocument: "after" }
+      );
 
-    if (!claimedGpu) {
-      result.skipped++;
-      console.log(`${LOG_PREFIX} Job ${job._id}: GPU ${bestGpu._id} was claimed concurrently. Skipping — will retry next cycle.`);
-      continue;
-    }
+      if (!claimedGpu) {
+        result.skipped++;
+        console.log(`${LOG_PREFIX} Job ${job._id}: GPU ${bestGpu._id} was claimed concurrently. Skipping — will retry next cycle.`);
+        continue;
+      }
 
-    // ── 6. Resolve provider wallet for blockchain ──────────────
-    const blockchainJobId = blockchainService.toBlockchainJobId
-      ? blockchainService.toBlockchainJobId(job._id)
-      : null;
+      // ── 6. Resolve provider wallet for blockchain ──────────────
+      const blockchainJobId = blockchainService.toBlockchainJobId
+        ? blockchainService.toBlockchainJobId(job._id)
+        : null;
 
-    let providerWalletAddress = null;
-    if (bcAvailable && claimedGpu.providerId) {
-      try {
-        const providerUser = await User.findById(claimedGpu.providerId).select("walletAddress");
-        providerWalletAddress = providerUser?.walletAddress ?? null;
-      } catch (e) {
-        console.warn(`${LOG_PREFIX} Could not fetch provider wallet for GPU ${claimedGpu._id}: ${e.message}`);
+      let providerWalletAddress = null;
+      if (bcAvailable && claimedGpu.providerId) {
+        try {
+          const providerUser = await User.findById(claimedGpu.providerId).select("walletAddress");
+          providerWalletAddress = providerUser?.walletAddress ?? null;
+        } catch (e) {
+          console.warn(`${LOG_PREFIX} Could not fetch provider wallet for GPU ${claimedGpu._id}: ${e.message}`);
+        }
+      }
+
+      // ── 7. Conditionally claim the job in MongoDB (P0-3) ───────
+      // Only a job that is still QUEUED with no GPU can be assigned. If an
+      // overlapping cycle (or any other writer) got there first, release the
+      // GPU claimed above so it is not left BUSY without a job.
+      const assignedJob = await Job.findOneAndUpdate(
+        { _id: job._id, status: JOB_STATUS.QUEUED, gpuId: null },
+        {
+          $set: {
+            status:          JOB_STATUS.ASSIGNED,
+            gpuId:           claimedGpu._id,
+            blockchainJobId: blockchainJobId,
+          },
+        },
+        { returnDocument: "after" }
+      );
+
+      if (!assignedJob) {
+        result.skipped++;
+        console.log(`${LOG_PREFIX} Job ${job._id}: no longer QUEUED (claimed elsewhere). Releasing GPU ${claimedGpu._id}.`);
+        await releaseClaimedGpu(claimedGpu._id, `job ${job._id} was not claimable`);
+        continue;
+      }
+
+      result.assigned++;
+      console.log(`${LOG_PREFIX} ✅ Job ${job._id} assigned to GPU ${claimedGpu._id} (${claimedGpu.gpuModel}).`);
+
+      // Remove the claimed GPU from the in-memory pool so it won't be reused
+      // in this cycle (also when the blockchain step below rolls it back; the
+      // next cycle re-reads the pool).
+      const idx = availableGPUs.findIndex((g) => String(g._id) === String(claimedGpu._id));
+      if (idx !== -1) availableGPUs.splice(idx, 1);
+
+      // ── 8. Blockchain assignment ───────────────────────────────
+      if (bcAvailable) {
+        await _attemptBlockchainAssignment(job, claimedGpu, blockchainJobId, providerWalletAddress, result);
+      }
+    } catch (err) {
+      // P0-3: an unexpected error during allocation must not leave a GPU
+      // BUSY. If the job was not assigned to this GPU, release the GPU.
+      result.errors++;
+      console.error(`${LOG_PREFIX} ❌ Allocation error for job ${job._id}: ${err.message}`);
+      if (claimedGpu) {
+        try {
+          const current = await Job.findById(job._id).select("status gpuId");
+          const heldByThisJob = current && current.status === JOB_STATUS.ASSIGNED &&
+            String(current.gpuId) === String(claimedGpu._id);
+          if (!heldByThisJob) {
+            await releaseClaimedGpu(claimedGpu._id, `allocation error for job ${job._id}`);
+          }
+        } catch (recoveryErr) {
+          console.error(`${LOG_PREFIX} 🚨 Recovery after allocation error failed for job ${job._id}: ${recoveryErr.message}`);
+        }
       }
     }
-
-    // ── 7. Assign job in MongoDB ───────────────────────────────
-    await Job.findByIdAndUpdate(job._id, {
-      $set: {
-        status:          JOB_STATUS.ASSIGNED,
-        gpuId:           claimedGpu._id,
-        blockchainJobId: blockchainJobId,
-      },
-    });
-
-    result.assigned++;
-    console.log(`${LOG_PREFIX} ✅ Job ${job._id} assigned to GPU ${claimedGpu._id} (${claimedGpu.gpuModel}).`);
-
-    // ── 8. Blockchain assignment ───────────────────────────────
-    if (bcAvailable) {
-      await _attemptBlockchainAssignment(job, claimedGpu, blockchainJobId, providerWalletAddress, result);
-    }
-
-    // Remove the claimed GPU from in-memory pool so it won't be double-assigned.
-    const idx = availableGPUs.findIndex((g) => String(g._id) === String(claimedGpu._id));
-    if (idx !== -1) availableGPUs.splice(idx, 1);
   }
 
   console.log(
@@ -231,19 +321,34 @@ async function _attemptBlockchainAssignment(job, claimedGpu, blockchainJobId, pr
     console.error(`${LOG_PREFIX}    Initiating rollback: GPU → ACTIVE, Job → QUEUED`);
 
     try {
-      // Rollback GPU to ACTIVE/available
-      await GPU.findByIdAndUpdate(claimedGpu._id, {
-        $set: { status: GPU_STATUS.ACTIVE, availability: true },
-      });
-
-      // Rollback Job to QUEUED with no GPU
-      await Job.findByIdAndUpdate(job._id, {
-        $set: {
-          status:          JOB_STATUS.QUEUED,
-          gpuId:           null,
-          blockchainJobId: null,
+      // P0-3: roll the job back ONLY if it is still ASSIGNED to this GPU.
+      // A worker may already have started it (ASSIGNED → RUNNING) while the
+      // on-chain call was pending; in that case the job keeps its GPU.
+      const rolledBack = await Job.findOneAndUpdate(
+        { _id: job._id, status: JOB_STATUS.ASSIGNED, gpuId: claimedGpu._id },
+        {
+          $set: {
+            status:          JOB_STATUS.QUEUED,
+            gpuId:           null,
+            blockchainJobId: null,
+          },
         },
-      });
+        { returnDocument: "after" }
+      );
+
+      if (!rolledBack) {
+        console.warn(
+          `${LOG_PREFIX} ⚠️  Job ${job._id} is no longer ASSIGNED to GPU ${claimedGpu._id}; ` +
+          `MongoDB rollback skipped and the GPU stays with the job.`
+        );
+        return;
+      }
+
+      // Release the GPU (conditional on it still being BUSY)
+      await GPU.findOneAndUpdate(
+        { _id: claimedGpu._id, status: GPU_STATUS.BUSY },
+        { $set: { status: GPU_STATUS.ACTIVE, availability: true } }
+      );
 
       console.log(`${LOG_PREFIX} ✅ Rollback complete. Job ${job._id} returned to QUEUED.`);
     } catch (rollbackErr) {

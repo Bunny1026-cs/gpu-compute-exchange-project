@@ -14,11 +14,21 @@
 
 const GPU = require("../models/GPU");
 const { GPU_STATUS } = require("../models/GPU");
+const { parseCuda } = require("../scheduler/matcher");
+const CUDA_FORMAT_MSG = "cudaVersion must look like 12, 12.2 or 12.2.1.";
 
 // ── Helpers ───────────────────────────────────────────────────
 
 /** Fields a provider is allowed to update */
 const UPDATABLE_FIELDS = ["gpuModel", "gpuMemory", "cudaVersion", "pricePerHour", "availability", "status"];
+
+// P0-4: BUSY is owned by the scheduler/worker lifecycle. Providers may not set
+// it, and may not change status/availability while a GPU is BUSY.
+const SCHEDULER_MANAGED_FIELDS = ["status", "availability"];
+const BUSY_NOT_SETTABLE_MSG =
+  "GPU status BUSY is managed by the scheduler and cannot be set manually. Use ACTIVE or INACTIVE.";
+const BUSY_LOCKED_MSG =
+  "This GPU is BUSY with an assigned or running job. Its status and availability cannot be changed until the job ends.";
 
 /**
  * extractUpdateFields
@@ -55,6 +65,12 @@ const createGPU = async (req, res) => {
     }
     if (pricePerHour === undefined || pricePerHour === null) {
       return res.status(400).json({ success: false, message: "pricePerHour is required." });
+    }
+    if (status === GPU_STATUS.BUSY) {
+      return res.status(400).json({ success: false, message: BUSY_NOT_SETTABLE_MSG });
+    }
+    if (!parseCuda(cudaVersion)) {                                    // P1-1
+      return res.status(400).json({ success: false, message: CUDA_FORMAT_MSG });
     }
 
     // ── providerId comes from auth — never from body ───────────
@@ -160,11 +176,33 @@ const updateGPU = async (req, res) => {
       });
     }
 
-    const updated = await GPU.findByIdAndUpdate(
-      req.params.id,
+    if (updates.status === GPU_STATUS.BUSY) {
+      return res.status(400).json({ success: false, message: BUSY_NOT_SETTABLE_MSG });
+    }
+    if (updates.cudaVersion !== undefined && !parseCuda(updates.cudaVersion)) {   // P1-1
+      return res.status(400).json({ success: false, message: CUDA_FORMAT_MSG });
+    }
+
+    const touchesManagedField = SCHEDULER_MANAGED_FIELDS.some((f) => f in updates);
+    if (touchesManagedField && gpu.status === GPU_STATUS.BUSY) {
+      return res.status(409).json({ success: false, message: BUSY_LOCKED_MSG });
+    }
+
+    // P0-4: when status/availability change, the write is conditional on the
+    // GPU not being BUSY at write time, closing the gap between the read
+    // above and a concurrent scheduler claim.
+    const filter = { _id: req.params.id, providerId: req.user._id };
+    if (touchesManagedField) filter.status = { $ne: GPU_STATUS.BUSY };
+
+    const updated = await GPU.findOneAndUpdate(
+      filter,
       { $set: updates },
       { returnDocument: "after", runValidators: true }
     );
+
+    if (!updated) {
+      return res.status(409).json({ success: false, message: BUSY_LOCKED_MSG });
+    }
 
     return res.status(200).json({ success: true, data: updated });
   } catch (err) {
@@ -207,7 +245,20 @@ const deleteGPU = async (req, res) => {
       });
     }
 
-    await GPU.findByIdAndDelete(req.params.id);
+    // P0-4: atomic delete — succeeds only if the GPU is (still) not BUSY,
+    // so a scheduler claim between the check above and this write is safe.
+    const deleted = await GPU.findOneAndDelete({
+      _id: req.params.id,
+      providerId: req.user._id,
+      status: { $ne: GPU_STATUS.BUSY },
+    });
+
+    if (!deleted) {
+      return res.status(409).json({
+        success: false,
+        message: "A GPU with an assigned or running job cannot be deleted.",
+      });
+    }
 
     return res.status(200).json({ success: true, message: "GPU deleted successfully." });
   } catch (err) {

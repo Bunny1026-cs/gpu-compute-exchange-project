@@ -34,6 +34,7 @@ pragma solidity ^0.8.24;
  *   - operator: backend service, can assign/verify/refund/release
  *   - consumer: registers job, deposits funds
  *   - provider: submits result for assigned job
+ *     (must differ from the operator and from the job's consumer)
  */
 
 // ═══════════════════════════════════════════════════════════════
@@ -97,6 +98,7 @@ contract GPUComputeEscrow {
     error ProviderAlreadyAssigned();
     error AlreadyReleased();
     error AlreadyRefunded();
+    error InvalidProvider();
 
     // ── Modifiers ─────────────────────────────────────────────
     modifier onlyOwner() {
@@ -212,6 +214,10 @@ contract GPUComputeEscrow {
      *
      * Only the operator (backend service) can call this.
      * Job must be FUNDED and have no provider yet.
+     *
+     * Role separation: the provider may be neither the current operator nor
+     * the job's consumer. Without this check the operator could assign itself
+     * and, as both provider and verifier, release the escrow to itself.
      */
     function assignJob(bytes32 jobId, address provider)
         external
@@ -223,6 +229,7 @@ contract GPUComputeEscrow {
 
         Job storage job = jobs[jobId];
         if (job.provider != address(0)) revert ProviderAlreadyAssigned();
+        if (provider == operator || provider == job.consumer) revert InvalidProvider();
 
         job.provider = provider;
         job.status = JobStatus.ASSIGNED;

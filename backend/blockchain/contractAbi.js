@@ -22,6 +22,7 @@ const ESCROW_ABI = [
   { "inputs": [], "name": "InvalidAddress",       "type": "error" },
   { "inputs": [], "name": "InvalidAmount",        "type": "error" },
   { "inputs": [], "name": "InvalidResultHash",    "type": "error" },
+  { "inputs": [], "name": "InvalidProvider",      "type": "error" },
   { "inputs": [
       { "internalType": "enum GPUComputeEscrow.JobStatus", "name": "current",  "type": "uint8" },
       { "internalType": "enum GPUComputeEscrow.JobStatus", "name": "expected", "type": "uint8" }

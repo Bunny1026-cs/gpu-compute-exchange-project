@@ -6,11 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "validate-models": "node scripts/validate-models.js",
-    "test:scheduler": "node scripts/test-scheduler.js",
-    "test:api": "node scripts/test-api.js",
-    "test:blockchain": "node scripts/test-blockchain.js",
-    "test": "npm run validate-models && npm run test:scheduler"
+    "test:scheduler": "node --test test/matcher.test.js test/scheduler.test.js",
+    "test": "node --test test/matcher.test.js test/scheduler.test.js test/gpuController.test.js test/ipfs.test.js test/devRoutes.test.js test/validation.test.js test/workerLifecycle.test.js test/blockchainService.test.js",
+    "check:chain": "node scripts/check-local-chain.js"
   },
   "keywords": [
     "gpu",

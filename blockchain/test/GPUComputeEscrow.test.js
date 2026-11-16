@@ -477,4 +477,43 @@ describe("GPUComputeEscrow", function () {
       ).to.be.revertedWithCustomError(contract, "InvalidStatus");
     });
   });
+  // ═════════════════════════════════════════════════════════════
+  // 9. ROLE SEPARATION (provider ≠ operator, provider ≠ consumer)
+  // ═════════════════════════════════════════════════════════════
+  describe("Role Separation", function () {
+    it("34. Operator cannot assign itself as provider", async function () {
+      const { contract, operator, consumer, jobId, depositAmount } = await loadFixture(deployFixture);
+      await advanceToFunded(contract, consumer, operator, jobId, depositAmount);
+      await expect(contract.connect(operator).assignJob(jobId, operator.address))
+        .to.be.revertedWithCustomError(contract, "InvalidProvider");
+    });
+
+    it("35. Job's consumer cannot be assigned as provider", async function () {
+      const { contract, operator, consumer, jobId, depositAmount } = await loadFixture(deployFixture);
+      await advanceToFunded(contract, consumer, operator, jobId, depositAmount);
+      await expect(contract.connect(operator).assignJob(jobId, consumer.address))
+        .to.be.revertedWithCustomError(contract, "InvalidProvider");
+    });
+
+    it("36. Check uses the current operator after setOperator", async function () {
+      const { contract, owner, operator, consumer, outsider, jobId, depositAmount } = await loadFixture(deployFixture);
+      await advanceToFunded(contract, consumer, operator, jobId, depositAmount);
+      await contract.connect(owner).setOperator(outsider.address);
+      await expect(contract.connect(outsider).assignJob(jobId, outsider.address))
+        .to.be.revertedWithCustomError(contract, "InvalidProvider");
+      // the previous operator is now an ordinary address and may be a provider
+      await expect(contract.connect(outsider).assignJob(jobId, operator.address)).to.not.be.reverted;
+      expect((await contract.getJob(jobId)).provider).to.equal(operator.address);
+    });
+
+    it("37. Rejected assignment leaves the job FUNDED with no provider", async function () {
+      const { contract, operator, consumer, jobId, depositAmount } = await loadFixture(deployFixture);
+      await advanceToFunded(contract, consumer, operator, jobId, depositAmount);
+      await expect(contract.connect(operator).assignJob(jobId, operator.address)).to.be.reverted;
+      const job = await contract.getJob(jobId);
+      expect(job.status).to.equal(2n);              // FUNDED
+      expect(job.provider).to.equal(ethers.ZeroAddress);
+    });
+  });
+
 });

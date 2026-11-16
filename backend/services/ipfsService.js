@@ -19,6 +19,21 @@ const path   = require("path");
 // ── Mock storage directory ────────────────────────────────────
 const MOCK_STORAGE_DIR = path.join(__dirname, "../.ipfs-mock");
 
+// ── CID validation (P0-2) ─────────────────────────────────────
+// Mock CIDs are produced by _generateMockCid(): "QmMock" + 44 hex chars.
+const MOCK_CID_REGEX = /^QmMock[0-9a-f]{44}$/;
+// Real IPFS: CIDv0 (base58btc, "Qm" + 44 chars) or CIDv1 in base32 ("b" + lowercase base32).
+const CID_V0_REGEX = /^Qm[1-9A-HJ-NP-Za-km-z]{44}$/;
+const CID_V1_BASE32_REGEX = /^b[a-z2-7]{58,}$/;
+
+class InvalidCidError extends Error {
+  constructor(message = "Invalid IPFS CID.") {
+    super(message);
+    this.name = "InvalidCidError";
+    this.statusCode = 400;
+  }
+}
+
 class IPFSService {
   constructor() {
     this.mode = "mock"; // "real" or "mock"
@@ -72,6 +87,19 @@ class IPFSService {
     return this.initialized;
   }
 
+  /**
+   * isValidCid (P0-2)
+   * Mock mode accepts only identifiers produced by this service.
+   * Real mode accepts CIDv0 or base32 CIDv1 syntax.
+   * @param {unknown} cid
+   * @returns {boolean}
+   */
+  isValidCid(cid) {
+    if (typeof cid !== "string") return false;
+    if (this.mode === "mock") return MOCK_CID_REGEX.test(cid);
+    return CID_V0_REGEX.test(cid) || CID_V1_BASE32_REGEX.test(cid);
+  }
+
   getMode() {
     return this.mode;
   }
@@ -104,6 +132,10 @@ class IPFSService {
    * Returns { content, contentType } or null if not found.
    */
   async retrieve(cid) {
+    // P0-2: never use an unvalidated identifier as a URL segment or file path.
+    if (!this.isValidCid(cid)) {
+      throw new InvalidCidError();
+    }
     if (this.mode === "real") {
       return this._retrieveReal(cid);
     }
@@ -173,7 +205,12 @@ class IPFSService {
   }
 
   async _retrieveMock(cid) {
-    const filePath = path.join(MOCK_STORAGE_DIR, cid);
+    // P0-2: defence in depth — the resolved path must stay inside the store.
+    const root = path.resolve(MOCK_STORAGE_DIR);
+    const filePath = path.resolve(root, cid);
+    if (path.dirname(filePath) !== root) {
+      throw new InvalidCidError();
+    }
     if (!fs.existsSync(filePath)) return null;
 
     const content = fs.readFileSync(filePath, "utf-8");
@@ -184,3 +221,4 @@ class IPFSService {
 // ── Singleton export ──────────────────────────────────────────
 const ipfsService = new IPFSService();
 module.exports = ipfsService;
+module.exports.InvalidCidError = InvalidCidError;

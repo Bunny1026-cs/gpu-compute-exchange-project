@@ -5,7 +5,7 @@
  * These endpoints are used by the Python GPU worker to:
  *   1. Poll for ASSIGNED jobs
  *   2. Mark jobs as RUNNING
- *   3. Submit results (resultHash + ipfsCid)
+ *   3. Submit results (resultHash + resultData; the backend assigns the CID)
  *   4. Report failures
  *   5. Complete jobs (triggers verification + payment pipeline)
  *
@@ -30,7 +30,55 @@ const ipfsService = require("../services/ipfsService");
 
 const LOG_PREFIX = "[Worker API]";
 
+/**
+ * transition (P1-2)
+ * Atomically moves a job from one of `fromStatuses` to a new state.
+ * Returns { job } on success (the PRE-transition document fields we need are
+ * re-read from the returned post-update document), or { error } with the
+ * same HTTP status/message the endpoints used before:
+ *   404 if the job does not exist, 400 if it is in another state.
+ * Because the status condition is part of the write, two concurrent callers
+ * can never both succeed.
+ */
+async function transition(jobId, fromStatuses, set, label) {
+  const updated = await Job.findOneAndUpdate(
+    { _id: jobId, status: { $in: fromStatuses } },
+    { $set: set },
+    { returnDocument: "after" }
+  );
+  if (updated) return { job: updated };
+  const current = await Job.findById(jobId).select("status");
+  if (!current) return { error: { code: 404, message: "Job not found." } };
+  return { error: { code: 400, message: `Cannot ${label} job in ${current.status} status. Must be ${fromStatuses.join(" or ")}.` } };
+}
+
+/**
+ * releaseJobGpu (P1-2)
+ * Returns the job's GPU to the pool, conditional on it still being BUSY.
+ */
+async function releaseJobGpu(gpuId) {
+  if (!gpuId) return;
+  const released = await GPU.findOneAndUpdate(
+    { _id: gpuId, status: GPU_STATUS.BUSY },
+    { $set: { status: GPU_STATUS.ACTIVE, availability: true } }
+  );
+  if (released) console.log(`${LOG_PREFIX} GPU ${gpuId} released back to ACTIVE.`);
+}
+
 // ── Middleware: Worker API Key Auth ────────────────────────────
+const crypto = require("crypto");
+
+/**
+ * keysMatch (P2-3)
+ * Constant-time comparison of the presented and expected API keys, so the
+ * response time does not reveal how many leading characters were correct.
+ * Both values are hashed first to obtain equal-length buffers.
+ */
+function keysMatch(presented, expected) {
+  const a = crypto.createHash("sha256").update(String(presented)).digest();
+  const b = crypto.createHash("sha256").update(String(expected)).digest();
+  return crypto.timingSafeEqual(a, b);
+}
 /**
  * authenticateWorker
  * Validates the X-Worker-API-Key header against WORKER_API_KEY env var.
@@ -48,7 +96,7 @@ function authenticateWorker(req, res, next) {
     });
   }
 
-  if (!apiKey || apiKey !== expectedKey) {
+  if (!apiKey || !keysMatch(apiKey, expectedKey)) {
     return res.status(401).json({
       success: false,
       message: "Invalid or missing worker API key.",
@@ -91,20 +139,11 @@ async function fetchAssignedJobs(req, res) {
  */
 async function startJob(req, res) {
   try {
-    const job = await Job.findById(req.params.id);
-    if (!job) return res.status(404).json({ success: false, message: "Job not found." });
-
-    if (job.status !== JOB_STATUS.ASSIGNED) {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot start job in ${job.status} status. Must be ASSIGNED.`,
-      });
-    }
-
-    // Update job status to RUNNING
-    await Job.findByIdAndUpdate(job._id, {
-      $set: { status: JOB_STATUS.RUNNING },
-    });
+    // P1-2: single conditional write — only one caller can start the job.
+    const { job, error } = await transition(
+      req.params.id, [JOB_STATUS.ASSIGNED], { status: JOB_STATUS.RUNNING }, "start"
+    );
+    if (error) return res.status(error.code).json({ success: false, message: error.message });
 
     console.log(`${LOG_PREFIX} ✅ Job ${job._id} → RUNNING`);
 
@@ -127,8 +166,8 @@ async function startJob(req, res) {
  * Body: {
  *   resultHash: "sha256-hex-string",
  *   resultData: { ... }         // optional — will be uploaded to IPFS
- *   ipfsCid:    "Qm..."        // optional — if worker already uploaded to IPFS
  * }
+ * A worker-supplied ipfsCid is rejected with 400 (P0-2).
  */
 async function submitResult(req, res) {
   try {
@@ -142,7 +181,7 @@ async function submitResult(req, res) {
       });
     }
 
-    const { resultHash, resultData, ipfsCid } = req.body;
+    const { resultHash, resultData } = req.body;
 
     if (!resultHash) {
       return res.status(400).json({
@@ -151,9 +190,20 @@ async function submitResult(req, res) {
       });
     }
 
+    // P0-2: a worker-supplied ipfsCid is not accepted. The CID stored on the
+    // job must come from the backend's own upload of resultData below, so it
+    // can never point outside the IPFS store. (The bundled worker does not
+    // send this field.)
+    if (req.body.ipfsCid !== undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "ipfsCid is not accepted. Send resultData; the backend stores it and assigns the CID.",
+      });
+    }
+
     // ── IPFS Upload ─────────────────────────────────────────
-    let finalCid = ipfsCid || null;
-    if (!finalCid && resultData && ipfsService.isAvailable()) {
+    let finalCid = null;
+    if (resultData && ipfsService.isAvailable()) {
       try {
         const uploadResult = await ipfsService.uploadJSON({
           jobId: job._id.toString(),
@@ -175,7 +225,14 @@ async function submitResult(req, res) {
     };
     if (finalCid) updates.ipfsCid = finalCid;
 
-    await Job.findByIdAndUpdate(job._id, { $set: updates });
+    // P1-2: the write is conditional on the job still being RUNNING, so a
+    // duplicate or late submission cannot overwrite an accepted result.
+    const { error: submitError } = await transition(
+      job._id, [JOB_STATUS.RUNNING], updates, "submit result for"
+    );
+    if (submitError) {
+      return res.status(submitError.code).json({ success: false, message: submitError.message });
+    }
 
     console.log(`${LOG_PREFIX} ✅ Job ${job._id} → RESULT_UPLOADED (hash: ${resultHash.substring(0, 16)}...)`);
 
@@ -205,33 +262,18 @@ async function submitResult(req, res) {
  */
 async function failJob(req, res) {
   try {
-    const job = await Job.findById(req.params.id);
-    if (!job) return res.status(404).json({ success: false, message: "Job not found." });
-
-    if (job.status !== JOB_STATUS.RUNNING && job.status !== JOB_STATUS.ASSIGNED) {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot fail job in ${job.status} status. Must be RUNNING or ASSIGNED.`,
-      });
-    }
-
     const reason = req.body.reason || "Unknown error";
 
-    // ── Release the GPU ─────────────────────────────────────
-    if (job.gpuId) {
-      await GPU.findByIdAndUpdate(job.gpuId, {
-        $set: { status: GPU_STATUS.ACTIVE, availability: true },
-      });
-      console.log(`${LOG_PREFIX} GPU ${job.gpuId} released back to ACTIVE.`);
-    }
+    // P1-2: claim the transition first; only the winning caller releases the
+    // GPU and attempts the refund.
+    const { job, error } = await transition(
+      req.params.id, [JOB_STATUS.RUNNING, JOB_STATUS.ASSIGNED],
+      { status: JOB_STATUS.FAILED, completedAt: new Date() }, "fail"
+    );
+    if (error) return res.status(error.code).json({ success: false, message: error.message });
 
-    // ── Update job ──────────────────────────────────────────
-    await Job.findByIdAndUpdate(job._id, {
-      $set: {
-        status: JOB_STATUS.FAILED,
-        completedAt: new Date(),
-      },
-    });
+    // ── Release the GPU ─────────────────────────────────────
+    await releaseJobGpu(job.gpuId);
 
     // ── Blockchain refund if available ───────────────────────
     if (blockchainService.isAvailable() && job.blockchainJobId) {
@@ -281,15 +323,15 @@ async function failJob(req, res) {
  */
 async function completeJob(req, res) {
   try {
-    const job = await Job.findById(req.params.id);
-    if (!job) return res.status(404).json({ success: false, message: "Job not found." });
-
-    if (job.status !== JOB_STATUS.RESULT_UPLOADED) {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot complete job in ${job.status} status. Must be RESULT_UPLOADED.`,
-      });
-    }
+    // P1-2: claim RESULT_UPLOADED → COMPLETED atomically BEFORE any on-chain
+    // call, so a duplicate request can never trigger a second verify/release.
+    // (As before, the job is completed in MongoDB whether or not the optional
+    // on-chain steps succeed; see the integration-boundary notes in README.)
+    const { job, error } = await transition(
+      req.params.id, [JOB_STATUS.RESULT_UPLOADED],
+      { status: JOB_STATUS.COMPLETED, completedAt: new Date() }, "complete"
+    );
+    if (error) return res.status(error.code).json({ success: false, message: error.message });
 
     let lastTxHash = job.blockchainTxHash;
 
@@ -324,21 +366,12 @@ async function completeJob(req, res) {
     }
 
     // ── Release GPU ─────────────────────────────────────────
-    if (job.gpuId) {
-      await GPU.findByIdAndUpdate(job.gpuId, {
-        $set: { status: GPU_STATUS.ACTIVE, availability: true },
-      });
-      console.log(`${LOG_PREFIX} GPU ${job.gpuId} released back to ACTIVE.`);
-    }
+    await releaseJobGpu(job.gpuId);
 
-    // ── Update job ──────────────────────────────────────────
-    await Job.findByIdAndUpdate(job._id, {
-      $set: {
-        status: JOB_STATUS.COMPLETED,
-        blockchainTxHash: lastTxHash,
-        completedAt: new Date(),
-      },
-    });
+    // ── Record the latest on-chain tx hash (status already COMPLETED) ──
+    if (lastTxHash !== job.blockchainTxHash) {
+      await Job.findByIdAndUpdate(job._id, { $set: { blockchainTxHash: lastTxHash } });
+    }
 
     console.log(`${LOG_PREFIX} ✅ Job ${job._id} → COMPLETED`);
 
@@ -370,6 +403,11 @@ async function getIPFSContent(req, res) {
         success: false,
         message: "IPFS service not initialized.",
       });
+    }
+
+    // P0-2: reject malformed identifiers before any storage access
+    if (!ipfsService.isValidCid(req.params.cid)) {
+      return res.status(400).json({ success: false, message: "Invalid IPFS CID." });
     }
 
     const result = await ipfsService.retrieve(req.params.cid);

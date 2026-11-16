@@ -61,9 +61,14 @@ blockchain/deployments/
 backend/.ipfs-mock/
 
 # Paper / research (keep out of repo)
+# NOTE (P0-5): patterns WITHOUT a leading "/" match at every depth. The former
+# "scripts/" rule therefore also excluded backend/scripts/ and
+# blockchain/scripts/, which package.json and the blockchain Dockerfile need.
+# "/scripts/" is anchored to the repository root so only the root-level
+# research folder is ignored.
 paper-revised/
 results-assets/
-scripts/
+/scripts/
 BDGCE_paper_revised.tex
 *.tex
 *.cls

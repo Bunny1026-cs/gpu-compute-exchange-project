@@ -121,7 +121,28 @@ class BlockchainService {
    * Uses "latest" block tag so the nonce reflects all mined transactions.
    */
   async _getNonce(address) {
-    return await this.provider.getTransactionCount(address, "latest");
+    // P1-8: raw, uncached JSON-RPC call with the "pending" tag. The previous
+    // provider.getTransactionCount(address, "latest") could return a value
+    // cached by ethers from a call made moments earlier, so a second
+    // transaction from the same wallet (e.g. registerJob then depositFunds)
+    // reused the first nonce and was rejected ("Nonce too low").
+    const hex = await this.provider.send("eth_getTransactionCount", [address, "pending"]);
+    return Number(BigInt(hex));
+  }
+
+  /**
+   * _serialized (P1-8)
+   * Runs fn() after every earlier transaction from the same address has been
+   * mined (or failed), so two concurrent backend calls from one wallet can
+   * never obtain the same nonce. One queue per sending address.
+   */
+  _serialized(address, fn) {
+    if (!this._txQueues) this._txQueues = new Map();
+    const key = address.toLowerCase();
+    const prev = this._txQueues.get(key) || Promise.resolve();
+    const run = prev.catch(() => {}).then(fn);
+    this._txQueues.set(key, run.catch(() => {}));
+    return run;
   }
 
   // ────────────────────────────────────────────────────────────
@@ -170,10 +191,16 @@ class BlockchainService {
       // Verify operator
       const onChainOperator = await this.readContract.operator();
       if (onChainOperator.toLowerCase() !== this.operatorWallet.address.toLowerCase()) {
-        console.warn(`[Blockchain] ⚠️  Operator mismatch! Backend: ${this.operatorWallet.address}, Contract: ${onChainOperator}`);
-      } else {
-        console.log(`[Blockchain] ✅ Operator address matches contract`);
+        // P1-7: fail closed. Every operator transaction (assignJob, verifyResult,
+        // releasePayment, refund) would revert with Unauthorized, so the service
+        // must not report itself available. The backend continues in
+        // MongoDB-only mode, exactly as when the blockchain env vars are absent.
+        throw new Error(
+          `Operator mismatch: BLOCKCHAIN_PRIVATE_KEY controls ${this.operatorWallet.address}, ` +
+          `but the contract operator is ${onChainOperator}. Blockchain integration disabled.`
+        );
       }
+      console.log(`[Blockchain] ✅ Operator address matches contract`);
 
       this._setupEventListeners();
       this.available   = true;
@@ -266,11 +293,14 @@ class BlockchainService {
     this._requireDemoMode();
 
     const { wallet, contract } = this._makeFreshSigner(process.env.DEMO_CONSUMER_PRIVATE_KEY);
-    const nonce = await this._getNonce(wallet.address);
-    console.log(`[Blockchain] 📊 registerJob nonce for ${wallet.address}: ${nonce}`);
+    const receipt = await this._serialized(wallet.address, async () => {
+      const nonce = await this._getNonce(wallet.address);
+      console.log(`[Blockchain] 📊 registerJob nonce for ${wallet.address}: ${nonce}`);
 
-    const tx = await contract.registerJob(blockchainJobId, { nonce });
-    const receipt = await tx.wait(1);
+      const tx = await contract.registerJob(blockchainJobId, { nonce });
+      const receipt = await tx.wait(1);
+      return receipt;
+    });
     console.log(`[Blockchain] 📋 Demo: Job ${blockchainJobId} registered. tx: ${receipt.hash}`);
     return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
   }
@@ -284,14 +314,17 @@ class BlockchainService {
     this._requireDemoMode();
 
     const { wallet, contract } = this._makeFreshSigner(process.env.DEMO_CONSUMER_PRIVATE_KEY);
-    const nonce = await this._getNonce(wallet.address);
-    console.log(`[Blockchain] 📊 depositFunds nonce for ${wallet.address}: ${nonce}`);
+    const receipt = await this._serialized(wallet.address, async () => {
+      const nonce = await this._getNonce(wallet.address);
+      console.log(`[Blockchain] 📊 depositFunds nonce for ${wallet.address}: ${nonce}`);
 
-    const tx = await contract.depositFunds(blockchainJobId, {
-      value: BigInt(amountWei),
-      nonce,
+      const tx = await contract.depositFunds(blockchainJobId, {
+        value: BigInt(amountWei),
+        nonce,
+      });
+      const receipt = await tx.wait(1);
+      return receipt;
     });
-    const receipt = await tx.wait(1);
     console.log(`[Blockchain] 💰 Demo: Deposited ${amountWei} wei for job ${blockchainJobId}. tx: ${receipt.hash}`);
     return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
   }
@@ -316,9 +349,12 @@ class BlockchainService {
     }
 
     const { wallet, contract } = this._makeFreshSigner(process.env.BLOCKCHAIN_PRIVATE_KEY);
-    const nonce = await this._getNonce(wallet.address);
-    const tx = await contract.assignJob(blockchainJobId, providerAddress, { nonce });
-    const receipt = await tx.wait(1);
+    const receipt = await this._serialized(wallet.address, async () => {
+      const nonce = await this._getNonce(wallet.address);
+      const tx = await contract.assignJob(blockchainJobId, providerAddress, { nonce });
+      const receipt = await tx.wait(1);
+      return receipt;
+    });
     console.log(`[Blockchain] ✅ assignJob confirmed. tx: ${receipt.hash}`);
     return {
       txHash:      receipt.hash,
@@ -331,9 +367,12 @@ class BlockchainService {
   async verifyResult(blockchainJobId, resultHash) {
     this._requireAvailable();
     const { wallet, contract } = this._makeFreshSigner(process.env.BLOCKCHAIN_PRIVATE_KEY);
-    const nonce = await this._getNonce(wallet.address);
-    const tx = await contract.verifyResult(blockchainJobId, resultHash, { nonce });
-    const receipt = await tx.wait(1);
+    const receipt = await this._serialized(wallet.address, async () => {
+      const nonce = await this._getNonce(wallet.address);
+      const tx = await contract.verifyResult(blockchainJobId, resultHash, { nonce });
+      const receipt = await tx.wait(1);
+      return receipt;
+    });
     console.log(`[Blockchain] ✅ verifyResult confirmed. tx: ${receipt.hash}`);
     return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
   }
@@ -341,9 +380,12 @@ class BlockchainService {
   async releasePayment(blockchainJobId) {
     this._requireAvailable();
     const { wallet, contract } = this._makeFreshSigner(process.env.BLOCKCHAIN_PRIVATE_KEY);
-    const nonce = await this._getNonce(wallet.address);
-    const tx = await contract.releasePayment(blockchainJobId, { nonce });
-    const receipt = await tx.wait(1);
+    const receipt = await this._serialized(wallet.address, async () => {
+      const nonce = await this._getNonce(wallet.address);
+      const tx = await contract.releasePayment(blockchainJobId, { nonce });
+      const receipt = await tx.wait(1);
+      return receipt;
+    });
     console.log(`[Blockchain] ✅ releasePayment confirmed. tx: ${receipt.hash}`);
     return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
   }
@@ -351,9 +393,12 @@ class BlockchainService {
   async refund(blockchainJobId) {
     this._requireAvailable();
     const { wallet, contract } = this._makeFreshSigner(process.env.BLOCKCHAIN_PRIVATE_KEY);
-    const nonce = await this._getNonce(wallet.address);
-    const tx = await contract.refund(blockchainJobId, { nonce });
-    const receipt = await tx.wait(1);
+    const receipt = await this._serialized(wallet.address, async () => {
+      const nonce = await this._getNonce(wallet.address);
+      const tx = await contract.refund(blockchainJobId, { nonce });
+      const receipt = await tx.wait(1);
+      return receipt;
+    });
     console.log(`[Blockchain] ✅ refund confirmed. tx: ${receipt.hash}`);
     return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
   }

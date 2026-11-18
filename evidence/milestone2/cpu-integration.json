@@ -1,0 +1,471 @@
+{
+  "recordedAt": "2026-11-18T03:09:46.200Z",
+  "environment": "Laptop 1; CPU; local Hardhat; no GPU claim",
+  "samples": [
+    {
+      "jobId": "6afd169ada0293fda2b4f6d8",
+      "endToEndMs": 17491.3232,
+      "resultHash": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+      "executionMode": "real_cpu_test",
+      "metadata": {
+        "status": "success",
+        "capabilities": {
+          "executionMode": "real_cpu_test",
+          "python": "3.13.7",
+          "torch": "2.12.1+cpu",
+          "os": "Windows-11-10.0.26200-SP0",
+          "cudaVersion": "0",
+          "gpuModel": "CPU development test (not a GPU)",
+          "gpuMemory": 0,
+          "deviceIndex": null
+        },
+        "spec": {
+          "size": 128,
+          "seed": 42,
+          "dtype": "float32",
+          "executionMode": "real_cpu_test"
+        },
+        "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+        "artifactBytes": 65664,
+        "verified": true,
+        "maxAbsoluteError": 0.000007124181298223675,
+        "timingsMs": {
+          "warmup": 9.538100000099803,
+          "hostToDevice": null,
+          "kernel": 0.019999999949504854,
+          "deviceToHost": null,
+          "cpuFloat64Reference": 79.06240000011167,
+          "cpuFloat32Kernel": 0.01919999976962572,
+          "total": 2334.7538999996686
+        },
+        "peakAllocatedBytes": null,
+        "peakReservedBytes": null,
+        "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate"
+      },
+      "receipts": [
+        {
+          "action": "JobRegistered",
+          "txHash": "0x7973a8b6b2b46f3bec3d93c4876f3a78dda5d7322956f6654424db56b3fecb1a",
+          "gasUsed": "97092",
+          "blockNumber": 43,
+          "amountWei": null
+        },
+        {
+          "action": "FundsDeposited",
+          "txHash": "0x2cacc3e14a4d009f900e90fdc4810985b92f71bf7d23a9f1acbe72436ac8225c",
+          "gasUsed": "53319",
+          "blockNumber": 44,
+          "amountWei": "1000000000000000"
+        },
+        {
+          "action": "JobAssigned",
+          "txHash": "0x0644b786ee3f173ec2b8692db179a014c4c29be670e5d25cad7d71eccda7b106",
+          "gasUsed": "56010",
+          "blockNumber": 45,
+          "amountWei": null
+        },
+        {
+          "action": "ResultSubmitted",
+          "txHash": "0x668caa4d4574ebb7eb12ec34e2625d097a092ee3ea0a10bfbc94ae9dc9c48cd9",
+          "gasUsed": "53844",
+          "blockNumber": 46,
+          "amountWei": null
+        },
+        {
+          "action": "ResultVerified",
+          "txHash": "0x7a18da35d08c4552acb8e9a0061182e86453ee41011a416acf0f38325badd2e9",
+          "gasUsed": "33401",
+          "blockNumber": 47,
+          "amountWei": null
+        },
+        {
+          "action": "PaymentReleased",
+          "txHash": "0x8527673a6c49cd25f83be701519aae95ce41c9b89fdc13482479150b55101a05",
+          "gasUsed": "54263",
+          "blockNumber": 48,
+          "amountWei": "1000000000000000"
+        }
+      ],
+      "paymentWei": "1000000000000000",
+      "verification": {
+        "verified": true,
+        "maxAbsoluteError": 0.000007124181298223675,
+        "rtol": 0.0001,
+        "atol": 0.0001
+      },
+      "queueMs": 2290
+    },
+    {
+      "jobId": "6afd16acda0293fda2b4f6de",
+      "endToEndMs": 18398.460099999997,
+      "resultHash": "4e19ad3c7562959cd103167bb504f6e1d803aa0edb92f2d7f36e74c68a65913a",
+      "executionMode": "real_cpu_test",
+      "metadata": {
+        "status": "success",
+        "capabilities": {
+          "executionMode": "real_cpu_test",
+          "python": "3.13.7",
+          "torch": "2.12.1+cpu",
+          "os": "Windows-11-10.0.26200-SP0",
+          "cudaVersion": "0",
+          "gpuModel": "CPU development test (not a GPU)",
+          "gpuMemory": 0,
+          "deviceIndex": null
+        },
+        "spec": {
+          "size": 128,
+          "seed": 43,
+          "dtype": "float32",
+          "executionMode": "real_cpu_test"
+        },
+        "sha256": "4e19ad3c7562959cd103167bb504f6e1d803aa0edb92f2d7f36e74c68a65913a",
+        "artifactBytes": 65664,
+        "verified": true,
+        "maxAbsoluteError": 0.000006371188327136679,
+        "timingsMs": {
+          "warmup": 0.4122000000279513,
+          "hostToDevice": null,
+          "kernel": 0.03620000006776536,
+          "deviceToHost": null,
+          "cpuFloat64Reference": 1.272500000141008,
+          "cpuFloat32Kernel": 0.03710000009959913,
+          "total": 1269.1072999996322
+        },
+        "peakAllocatedBytes": null,
+        "peakReservedBytes": null,
+        "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate"
+      },
+      "receipts": [
+        {
+          "action": "JobRegistered",
+          "txHash": "0x0ce9a99f2a91b524ea29ebd5de3bcec0aedc1922a20734dcf070dd62d55d308a",
+          "gasUsed": "97092",
+          "blockNumber": 49,
+          "amountWei": null
+        },
+        {
+          "action": "FundsDeposited",
+          "txHash": "0xc0bd76f5de044bf613e32bfaefef907721043eba6168443811102922a05f3a52",
+          "gasUsed": "53319",
+          "blockNumber": 50,
+          "amountWei": "1000000000000000"
+        },
+        {
+          "action": "JobAssigned",
+          "txHash": "0x921bd6aa2fd827fc999456f0ad891670cb68aa4cd907c84be5dddea78df593fc",
+          "gasUsed": "56010",
+          "blockNumber": 51,
+          "amountWei": null
+        },
+        {
+          "action": "ResultSubmitted",
+          "txHash": "0x0f23ef67f12f0ffc93932c0c8607a8e5d1fb87abea490e68f5895dd203ca16f6",
+          "gasUsed": "53844",
+          "blockNumber": 52,
+          "amountWei": null
+        },
+        {
+          "action": "ResultVerified",
+          "txHash": "0x15f22893ef9718547c92c74c1dd5a351177eb7f18a6b3cfe296cabff26ebaa95",
+          "gasUsed": "33401",
+          "blockNumber": 53,
+          "amountWei": null
+        },
+        {
+          "action": "PaymentReleased",
+          "txHash": "0x72732c8feac8db6c47228011ecbf27637323dc6d0db3f7264ee22620387b0d2c",
+          "gasUsed": "54263",
+          "blockNumber": 54,
+          "amountWei": "1000000000000000"
+        }
+      ],
+      "paymentWei": "1000000000000000",
+      "verification": {
+        "verified": true,
+        "maxAbsoluteError": 0.000006371188327136679,
+        "rtol": 0.0001,
+        "atol": 0.0001
+      },
+      "queueMs": 2939
+    },
+    {
+      "jobId": "6afd16beda0293fda2b4f6e4",
+      "endToEndMs": 20443.852899999998,
+      "resultHash": "2038c2568a18921ee12ab19688681afd6c53e0387a601249b37e8dee60a18448",
+      "executionMode": "real_cpu_test",
+      "metadata": {
+        "status": "success",
+        "capabilities": {
+          "executionMode": "real_cpu_test",
+          "python": "3.13.7",
+          "torch": "2.12.1+cpu",
+          "os": "Windows-11-10.0.26200-SP0",
+          "cudaVersion": "0",
+          "gpuModel": "CPU development test (not a GPU)",
+          "gpuMemory": 0,
+          "deviceIndex": null
+        },
+        "spec": {
+          "size": 128,
+          "seed": 44,
+          "dtype": "float32",
+          "executionMode": "real_cpu_test"
+        },
+        "sha256": "2038c2568a18921ee12ab19688681afd6c53e0387a601249b37e8dee60a18448",
+        "artifactBytes": 65664,
+        "verified": true,
+        "maxAbsoluteError": 0.000005640465078116108,
+        "timingsMs": {
+          "warmup": 0.34870000035880366,
+          "hostToDevice": null,
+          "kernel": 0.041199999941454735,
+          "deviceToHost": null,
+          "cpuFloat64Reference": 1.396999999997206,
+          "cpuFloat32Kernel": 0.041400000100111356,
+          "total": 1706.6993999997067
+        },
+        "peakAllocatedBytes": null,
+        "peakReservedBytes": null,
+        "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate"
+      },
+      "receipts": [
+        {
+          "action": "JobRegistered",
+          "txHash": "0x8308f41810fb3788da3a066ee74fe76b770324c338aae4e6ccbc6b725e94eac0",
+          "gasUsed": "97092",
+          "blockNumber": 55,
+          "amountWei": null
+        },
+        {
+          "action": "FundsDeposited",
+          "txHash": "0xc370c69c83569e9cad22dae4559388b0b322e0876419976539598bd9ba7f9e41",
+          "gasUsed": "53319",
+          "blockNumber": 56,
+          "amountWei": "1000000000000000"
+        },
+        {
+          "action": "JobAssigned",
+          "txHash": "0x3d4f761e44d65ebfa541044d3465b306c5645a086dfb527cd61e9ed8daa102a1",
+          "gasUsed": "56010",
+          "blockNumber": 57,
+          "amountWei": null
+        },
+        {
+          "action": "ResultSubmitted",
+          "txHash": "0x42db60644ea88e3d4077ed623e4d30e9c984a736c8196ef0bd15d91d6ff70ecb",
+          "gasUsed": "53844",
+          "blockNumber": 58,
+          "amountWei": null
+        },
+        {
+          "action": "ResultVerified",
+          "txHash": "0x803ceb8dd44a528f84cfa05f07d26d6c823bf7def78ccda2327ca615949c4be6",
+          "gasUsed": "33401",
+          "blockNumber": 59,
+          "amountWei": null
+        },
+        {
+          "action": "PaymentReleased",
+          "txHash": "0xb4b822025402c452d932ddf3db0b720aee102ae0c7bb6e764e820c8e98a7a8ee",
+          "gasUsed": "54263",
+          "blockNumber": 60,
+          "amountWei": "1000000000000000"
+        }
+      ],
+      "paymentWei": "1000000000000000",
+      "verification": {
+        "verified": true,
+        "maxAbsoluteError": 0.000005640465078116108,
+        "rtol": 0.0001,
+        "atol": 0.0001
+      },
+      "queueMs": 2506
+    },
+    {
+      "jobId": "6afd16d3da0293fda2b4f6ea",
+      "endToEndMs": 18436.142700000004,
+      "resultHash": "a9b53c5e48705c98c61363af52153b1b9ef2709d46be913d1248cd19b78db4cd",
+      "executionMode": "real_cpu_test",
+      "metadata": {
+        "status": "success",
+        "capabilities": {
+          "executionMode": "real_cpu_test",
+          "python": "3.13.7",
+          "torch": "2.12.1+cpu",
+          "os": "Windows-11-10.0.26200-SP0",
+          "cudaVersion": "0",
+          "gpuModel": "CPU development test (not a GPU)",
+          "gpuMemory": 0,
+          "deviceIndex": null
+        },
+        "spec": {
+          "size": 128,
+          "seed": 45,
+          "dtype": "float32",
+          "executionMode": "real_cpu_test"
+        },
+        "sha256": "a9b53c5e48705c98c61363af52153b1b9ef2709d46be913d1248cd19b78db4cd",
+        "artifactBytes": 65664,
+        "verified": true,
+        "maxAbsoluteError": 0.000005697285953232267,
+        "timingsMs": {
+          "warmup": 1.029000000016822,
+          "hostToDevice": null,
+          "kernel": 0.031600000056641875,
+          "deviceToHost": null,
+          "cpuFloat64Reference": 1.1363999997229257,
+          "cpuFloat32Kernel": 0.03200000037395512,
+          "total": 1200.778999999784
+        },
+        "peakAllocatedBytes": null,
+        "peakReservedBytes": null,
+        "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate"
+      },
+      "receipts": [
+        {
+          "action": "JobRegistered",
+          "txHash": "0x1eb09c8e03c8e7c4e3bda8e5ff38dbed995592b26e20d9da291d7b899c9d20cf",
+          "gasUsed": "97092",
+          "blockNumber": 61,
+          "amountWei": null
+        },
+        {
+          "action": "FundsDeposited",
+          "txHash": "0x013c7305f684e8c3e12b935d77d85e12e8b0e743b757e98ebf2f3550210e9505",
+          "gasUsed": "53319",
+          "blockNumber": 62,
+          "amountWei": "1000000000000000"
+        },
+        {
+          "action": "JobAssigned",
+          "txHash": "0xc434000a151ece7af94aec8b1a586f2d5bb763fed97fb88f6362c8a62199850e",
+          "gasUsed": "56010",
+          "blockNumber": 63,
+          "amountWei": null
+        },
+        {
+          "action": "ResultSubmitted",
+          "txHash": "0x4f4f5e597ae7d8d9549731257df0e85e02482db25ade330449a98059bd80cc58",
+          "gasUsed": "53844",
+          "blockNumber": 64,
+          "amountWei": null
+        },
+        {
+          "action": "ResultVerified",
+          "txHash": "0x8872f58b2b8caa2cd39b5bf4c275d3d521d9980b1db41e04662fad3ffd4c2e8c",
+          "gasUsed": "33401",
+          "blockNumber": 65,
+          "amountWei": null
+        },
+        {
+          "action": "PaymentReleased",
+          "txHash": "0xe6cb8785e6b454585692d2002a9a33e545f5b2063b11bcda8bb9258fe893f315",
+          "gasUsed": "54263",
+          "blockNumber": 66,
+          "amountWei": "1000000000000000"
+        }
+      ],
+      "paymentWei": "1000000000000000",
+      "verification": {
+        "verified": true,
+        "maxAbsoluteError": 0.000005697285953232267,
+        "rtol": 0.0001,
+        "atol": 0.0001
+      },
+      "queueMs": 3205
+    },
+    {
+      "jobId": "6afd16e5da0293fda2b4f6f0",
+      "endToEndMs": 20458.3177,
+      "resultHash": "7ebdaa051f1e65d15b67d85142f9ca4afbfaddeffc8fe04850864e91aad45428",
+      "executionMode": "real_cpu_test",
+      "metadata": {
+        "status": "success",
+        "capabilities": {
+          "executionMode": "real_cpu_test",
+          "python": "3.13.7",
+          "torch": "2.12.1+cpu",
+          "os": "Windows-11-10.0.26200-SP0",
+          "cudaVersion": "0",
+          "gpuModel": "CPU development test (not a GPU)",
+          "gpuMemory": 0,
+          "deviceIndex": null
+        },
+        "spec": {
+          "size": 128,
+          "seed": 46,
+          "dtype": "float32",
+          "executionMode": "real_cpu_test"
+        },
+        "sha256": "7ebdaa051f1e65d15b67d85142f9ca4afbfaddeffc8fe04850864e91aad45428",
+        "artifactBytes": 65664,
+        "verified": true,
+        "maxAbsoluteError": 0.000007810943102981582,
+        "timingsMs": {
+          "warmup": 0.3904000000147789,
+          "hostToDevice": null,
+          "kernel": 0.034899999718618346,
+          "deviceToHost": null,
+          "cpuFloat64Reference": 1.2913000000480679,
+          "cpuFloat32Kernel": 0.03550000019458821,
+          "total": 1610.6896999999663
+        },
+        "peakAllocatedBytes": null,
+        "peakReservedBytes": null,
+        "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate"
+      },
+      "receipts": [
+        {
+          "action": "JobRegistered",
+          "txHash": "0x0852d1b4b309419ad1d909908c9de19df2f0965a9e2b116d5883d1c411b2837b",
+          "gasUsed": "97092",
+          "blockNumber": 67,
+          "amountWei": null
+        },
+        {
+          "action": "FundsDeposited",
+          "txHash": "0x2f9e57ce3ecec3f628113fc5a9421da76f4ec73256beff62e00f43576a8fc06e",
+          "gasUsed": "53319",
+          "blockNumber": 68,
+          "amountWei": "1000000000000000"
+        },
+        {
+          "action": "JobAssigned",
+          "txHash": "0xf3411949cd28ef17bd03832876e98a81001270c423a074c62f0b7986cbe5b48d",
+          "gasUsed": "56010",
+          "blockNumber": 69,
+          "amountWei": null
+        },
+        {
+          "action": "ResultSubmitted",
+          "txHash": "0xe4f161ef1dc6eca406ede77bd83ffa177649bb569f20709281afd2dc3026fb7c",
+          "gasUsed": "53844",
+          "blockNumber": 70,
+          "amountWei": null
+        },
+        {
+          "action": "ResultVerified",
+          "txHash": "0x52b2119799330dd8afa7bc0f3f10b9b0a2d1263d2c805c743d1eb7a361726695",
+          "gasUsed": "33401",
+          "blockNumber": 71,
+          "amountWei": null
+        },
+        {
+          "action": "PaymentReleased",
+          "txHash": "0x451ff4a255d93d3064405a733fa94fffa1ad6322a43bbfac438b13e15bc236cc",
+          "gasUsed": "54263",
+          "blockNumber": 72,
+          "amountWei": "1000000000000000"
+        }
+      ],
+      "paymentWei": "1000000000000000",
+      "verification": {
+        "verified": true,
+        "maxAbsoluteError": 0.000007810943102981582,
+        "rtol": 0.0001,
+        "atol": 0.0001
+      },
+      "queueMs": 2788
+    }
+  ]
+}

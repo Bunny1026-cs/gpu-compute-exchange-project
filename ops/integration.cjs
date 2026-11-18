@@ -7,7 +7,7 @@ const { performance } = require("perf_hooks");
 const runtime = path.resolve(__dirname, "../runtime");
 const users = JSON.parse(fs.readFileSync(path.join(runtime, "accounts.json")));
 const base = process.env.BACKEND_URL || "http://127.0.0.1:5000/api";
-const evidenceDir = path.resolve(__dirname, "../evidence");
+const evidenceDir = path.resolve(process.env.EVIDENCE_DIR || path.join(__dirname, "../evidence"));
 const samples = [];
 async function api(route, body, token, method = "POST", expected = 200) {
   const response = await fetch(base + route, { method, headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body ? JSON.stringify(body) : undefined });

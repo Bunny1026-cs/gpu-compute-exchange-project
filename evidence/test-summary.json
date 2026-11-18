@@ -1,7 +1,7 @@
 {
   "implementationCheckpoint": "905187b",
   "backendTests": {
-    "passed": 87,
+    "passed": 89,
     "failed": 0
   },
   "contractTests": {
@@ -15,7 +15,7 @@
   "frontendBuild": "passed",
   "frontendLint": "passed",
   "cpuIntegrationRuns": 5,
-  "liveSecurityChecks": 23,
+  "liveSecurityChecks": 28,
   "browserConsumer": "login, submit, fund, completed job, receipt and artifact controls verified",
   "browserProvider": "login, slot registration, credential issuance/hiding, INACTIVE edit verified",
   "notVerified": [
@@ -27,5 +27,6 @@
     "automatic real-time lease expiry",
     "destructive full reset rehearsal"
   ],
-  "liveLeaseRecovery": "passed with accelerated dedicated job lease; real cycle, refund receipt, reservation release"
+  "liveLeaseRecovery": "passed with accelerated dedicated job lease; real cycle, refund receipt, reservation release",
+  "milestone2Evidence": "evidence/milestone2"
 }

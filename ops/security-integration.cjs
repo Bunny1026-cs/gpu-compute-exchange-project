@@ -65,6 +65,27 @@ async function main() {
   const refunded = expect(await request(`/worker/jobs/${job._id}/fail`, { reason: "Intentional tested worker failure" }, workerHeaders(job)), 200, "Worker failure refunds escrow");
   assert.equal(refunded.status, "REFUNDED");
   expect(await request(`/worker/jobs/${job._id}/start`, {}, workerHeaders(job)), 409, "Late worker cannot restart refunded job");
+  // Two genuinely funded jobs compete for one fresh worker slot. No computation
+  // is claimed: both escrows are actually refunded after observing exclusivity.
+  expect(await request("/worker/heartbeat", { capabilities: cap, walletAddress: users.provider.walletAddress }, workerHeaders()), 200, "Refresh worker before concurrent scheduling");
+  const competing = [];
+  for (let index = 0; index < 2; index++) {
+    competing.push(expect(await request("/jobs", { taskType: "matrix_multiply", input: { size: 16, seed: index }, reservedMinutes: 1 }, consumerHeaders()), 201, "Create competing job"));
+  }
+  await Promise.all(competing.map(async (item) => expect(await request(`/jobs/${item._id}/fund`, {}, consumerHeaders()), 200, "Fund competing job")));
+  let observed;
+  for (let attempt = 0; attempt < 20; attempt++) {
+    observed = await Promise.all(competing.map((item) => getJob(item._id)));
+    if (observed.some((item) => item.status === "ASSIGNED")) break;
+    await sleep(1000);
+  }
+  assert.equal(observed.filter((item) => item.status === "ASSIGNED").length, 1);
+  assert.equal(observed.filter((item) => item.status === "QUEUED").length, 1);
+  checks.push("Two funded jobs cannot reserve the same slot concurrently");
+  for (const item of competing) {
+    const cancelled = expect(await request(`/jobs/${item._id}/cancel`, {}, consumerHeaders()), 200, "Refund competing test job");
+    assert.equal(cancelled.status, "REFUNDED");
+  }
   // Leave demo slot available for subsequent worker restart/provisioning.
   for (const slot of [gpu, otherGpu]) await request(`/gpus/${slot._id}`, { availability: false }, providerHeaders(), "PUT");
   for (const slot of slots) await request(`/gpus/${slot._id}`, { availability: true }, providerHeaders(), "PUT");

@@ -85,6 +85,8 @@ async function reconcile(job) {
     if (state.status === 6) {
       if (!events.PaymentReleased || !state.paymentReleased || !job.verification?.verified ||
           state.resultHash.toLowerCase() !== `0x${job.resultHash}` ||
+          state.provider.toLowerCase() !== job.providerWallet?.toLowerCase() ||
+          events.PaymentReleased.provider.toLowerCase() !== job.providerWallet?.toLowerCase() ||
           events.PaymentReleased.amount.toString() !== job.escrowAmountWei) throw fail("Payment/result reconciliation mismatch", 409);
       await Job.updateOne({ _id: job._id }, { $set: { status: "COMPLETED", completedAt: new Date(),
         paymentWei: events.PaymentReleased.amount.toString(), error: null } });
@@ -142,6 +144,9 @@ async function assign(id) {
     const state = await bc.getJob(job.blockchainJobId);
     if (state.payment !== job.escrowAmountWei || ![2, 3].includes(state.status)) throw fail("Confirmed funded escrow required");
     let gpu = job.gpuId ? await GPU.findOne({ _id: job.gpuId, activeJob: job._id }) : null;
+    // An on-chain assignment is permanent for this job. Never choose a different
+    // slot if the reservation was lost during an interrupted assignment.
+    if (!gpu && (job.gpuId || state.status === 3)) throw fail("Assignment reservation lost; cancel/refund this job", 409);
     if (!gpu) {
       const pool = await GPU.find({ availability: true, status: "ACTIVE", activeJob: null,
         executionMode: job.spec.executionMode, lastHeartbeat: { $gte: fresh() } }).lean();
@@ -191,14 +196,30 @@ async function acceptArtifact(id, gpu, leaseId, bytes, resultHash, metadata) {
   });
 }
 let cycling = false;
+async function invalidatePreviousChain() {
+  const current = await chain.instance();
+  const stale = await Job.find({ protocol: "real", chainInstance: { $exists: true, $nin: [null, current] },
+    status: { $ne: "FAILED" } });
+  for (const job of stale) {
+    await Job.updateOne({ _id: job._id, chainInstance: job.chainInstance }, { $set: {
+      status: "FAILED", error: "CHAIN_RESET: historical receipts belong to a previous local chain; create a new job",
+    }, $unset: { paymentWei: 1 } });
+    await release(job);
+  }
+  return stale.length;
+}
 async function cycle() {
   if (cycling) return;
   cycling = true;
   try {
+    await invalidatePreviousChain();
     const jobs = await Job.find({ protocol: "real", status: { $nin: ["CANCELLED", "FAILED", "REFUNDED", "COMPLETED"] } });
     for (const job of jobs) {
       try {
-        if (job.status === "QUEUED") await assign(job._id);
+        if (job.status === "QUEUED") {
+          if (job.gpuId && job.leaseExpiresAt < new Date()) await refund(job._id, "Assignment lease expired during recovery");
+          else await assign(job._id);
+        }
         else if (job.status === "REFUND_PENDING") await refund(job._id, job.error);
         else if (["RESULT_UPLOADED", "SETTLEMENT_PENDING"].includes(job.status)) {
           const state = await bc.getJob(job.blockchainJobId);
@@ -224,4 +245,4 @@ async function cycle() {
     }
   } finally { cycling = false; }
 }
-module.exports = { mode, hash, fail, fresh, specification, locked, create, fund, settle, refund, cycle, acceptArtifact, artifactRoot };
+module.exports = { mode, hash, fail, fresh, specification, locked, create, fund, settle, refund, cycle, acceptArtifact, artifactRoot, invalidatePreviousChain };

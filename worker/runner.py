@@ -34,7 +34,7 @@ class Worker:
         self.url = os.environ["BACKEND_URL"].rstrip("/")
         self.key = os.environ["WORKER_API_KEY"]
         self.session = str(uuid.uuid4())
-        self.wallet = signer("address")["address"]
+        self.wallet = signer("preflight")["address"]
         probe = subprocess.run([os.sys.executable, str(ROOT / "matrix_workload.py"),
                                 "capabilities", "--mode", self.mode],
                                capture_output=True, text=True, timeout=60, check=False)

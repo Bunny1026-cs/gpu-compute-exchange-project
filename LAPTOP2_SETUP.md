@@ -97,3 +97,5 @@ memory, environment, Git commit, median/min/max and CSV. Collect at least five f
 GPU end-to-end runs separately. Supported utilization telemetry and clock/driver
 settings should be captured on the physical machine. Never reuse CPU timings as GPU
 results or subtract timestamps between unsynchronized laptops.
+
+Worker startup now checks provider test-ETH balance against a 100,000-gas budget at current RPC fees. An unfunded wallet fails before heartbeats; use the default funded local Hardhat provider account or fund it with local test ETH.

@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-11-18T03:11:24.842Z",
+  "fundedWalletAccepted": true,
+  "unfundedWalletRejected": true,
+  "publicInfo": {
+    "address": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    "balanceWei": "10000009432261934815640",
+    "gasBudgetWei": "100002122000000",
+    "chainId": 31337
+  }
+}

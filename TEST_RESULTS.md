@@ -1,6 +1,6 @@
 # Actual test results
 
-Implementation checkpoint: `905187b` on `implementation/real-compute-workflow`.
+Initial implementation checkpoint: `905187b` on `implementation/real-compute-workflow`.
 Evidence files retain their original recordedAt timestamps. Session/server restarts
 occurred during work; they are not counted as successful tests.
 
@@ -8,7 +8,7 @@ occurred during work; they are not counted as successful tests.
 
 | Check | Actual outcome |
 | --- | --- |
-| Backend `npm.cmd test` | 87 passed, zero failures (82 preserved + 5 new real-compute tests) |
+| Backend `npm.cmd test` | 89 passed, zero failures (82 preserved + 7 real-compute tests) |
 | Contract `npm.cmd test` | 37 passed |
 | Worker `python -m unittest discover -s tests -v` | 24 passed (17 preserved + 7 matrix tests) |
 | Frontend `npm.cmd run build` | Passed |
@@ -17,7 +17,7 @@ occurred during work; they are not counted as successful tests.
 | Local MongoDB | Connected; real persistent job/GPU/receipt data |
 | Hardhat deployment | Actual GPUComputeEscrow deployed; separate operator/consumer/provider accounts |
 | `node ops/integration.cjs 5` on latest receipt code | Five genuine CPU jobs passed, plus real queued-job refund |
-| `node ops/security-integration.cjs` | 23 distinct live checks passed |
+| `node ops/security-integration.cjs` | 28 distinct live checks passed |
 | Browser consumer workflow | Login, create 64×64 job, fund, view completed status/payment/artifact controls passed |
 | Browser console inspection | Zero errors during tested consumer workflow |
 | Provider browser controls | Login, register slot, issue/hide credential, edit INACTIVE status passed |
@@ -35,7 +35,7 @@ cross-laptop traffic were not performed.
   numerical verification, transaction hashes, gas, event amounts, queue/end-to-end times.
 - `evidence/cpu-integration.csv`: derived directly from those recorded samples.
 - `evidence/cpu-refund.json`: actual RefundIssued receipt for an incompatible request.
-- `evidence/security-integration.json`: 23 named checks and actual worker-failure refund.
+- `evidence/security-integration.json`: 28 named checks and actual worker-failure refund.
 - `evidence/consumer-completed.png`: browser screenshot of a completed CPU test job.
 - Earlier pre-fix integration evidence is retained with `before-receipt-fix` suffix.
 
@@ -77,3 +77,5 @@ transaction boundary, full wall-clock lease-expiry timing, reset procedure and a
 provider browser recovery paths have not received exhaustive live fault-injection tests.
 The software is a local demonstration with one backend process; it is not a
 production distributed wallet service or remote hardware attestation system.
+
+See MILESTONE2_RESULTS.md and evidence/milestone2 for the latest Milestone 2 tests and recovery changes.

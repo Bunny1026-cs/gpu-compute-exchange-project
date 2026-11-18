@@ -40,3 +40,60 @@ test("chain instance reset and nonlocal network fail closed", async () => {
     await assert.rejects(chain.instance(), /Only local Hardhat/);
   } finally { Object.assign(bc, original); }
 });
+
+test("chain reset invalidates current payment display and releases only stale reservations", async () => {
+  const GPU = require("../models/GPU");
+  const original = { instance: chain.instance, find: Job.find, update: Job.updateOne, release: GPU.updateOne };
+  const writes = [];
+  try {
+    chain.instance = async () => "current:contract";
+    Job.find = async (filter) => {
+      assert.deepEqual(filter.chainInstance.$nin, [null, "current:contract"]);
+      return [{ _id: "old-job", gpuId: "slot", chainInstance: "old:contract", status: "COMPLETED" }];
+    };
+    Job.updateOne = async (filter, update) => { writes.push({ filter, update }); };
+    GPU.updateOne = async (filter, update) => {
+      assert.deepEqual(filter, { _id: "slot", activeJob: "old-job" });
+      assert.equal(update.$set.activeJob, null);
+    };
+    assert.equal(await compute.invalidatePreviousChain(), 1);
+    assert.equal(writes[0].update.$set.status, "FAILED");
+    assert.equal(writes[0].update.$unset.paymentWei, 1);
+    assert.match(writes[0].update.$set.error, /historical receipts/);
+  } finally {
+    chain.instance = original.instance; Job.find = original.find;
+    Job.updateOne = original.update; GPU.updateOne = original.release;
+  }
+});
+
+test("settlement RPC failure preserves pending state without marking completed or releasing GPU", async () => {
+  const fs = require("fs/promises");
+  const GPU = require("../models/GPU");
+  const original = { claim: Job.findOneAndUpdate, update: Job.updateOne, read: bc.getJob,
+    check: chain.check, events: chain.events, send: chain.send, file: fs.readFile, release: GPU.updateOne };
+  const writes = [];
+  let released = false;
+  const bytes = Buffer.from("actual test artifact bytes");
+  const job = { _id: "test-job", gpuId: "test-slot", status: "RESULT_UPLOADED",
+    verification: { verified: true }, resultHash: compute.hash(bytes), artifactPath: "test-artifact",
+    providerWallet: "0xprovider", blockchainJobId: "test-chain-job" };
+  try {
+    Job.findOneAndUpdate = () => ({ select: async () => job });
+    Job.updateOne = async (_filter, update) => { writes.push(update); };
+    bc.getJob = async () => ({ status: 4, resultHash: `0x${job.resultHash}`, provider: job.providerWallet });
+    chain.check = async () => "test-instance";
+    chain.events = async () => ({});
+    chain.send = async () => { throw new Error("RPC unavailable during verification"); };
+    fs.readFile = async () => bytes;
+    GPU.updateOne = async () => { released = true; };
+    await assert.rejects(compute.settle(job._id), /RPC unavailable/);
+    assert.ok(writes.some((write) => write.$set?.status === "SETTLEMENT_PENDING"));
+    assert.ok(!writes.some((write) => write.$set?.status === "COMPLETED"));
+    assert.equal(released, false);
+    assert.ok(writes.some((write) => write.$unset?.lockToken === 1));
+  } finally {
+    Job.findOneAndUpdate = original.claim; Job.updateOne = original.update; bc.getJob = original.read;
+    chain.check = original.check; chain.events = original.events; chain.send = original.send;
+    fs.readFile = original.file; GPU.updateOne = original.release;
+  }
+});

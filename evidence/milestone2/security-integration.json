@@ -1,0 +1,66 @@
+{
+  "recordedAt": "2026-11-18T03:10:38.573Z",
+  "checks": [
+    "Provider lists slots",
+    "Unlist idle slot for isolated test",
+    "Register test slot",
+    "Issue scoped credential",
+    "Register second slot",
+    "Issue different scoped credential",
+    "Genuine CPU capability heartbeat",
+    "Second live worker session rejected",
+    "Invalid worker key rejected",
+    "Arbitrary workload rejected",
+    "Create unfunded job",
+    "Read own job",
+    "Unfunded job not scheduled",
+    "Concurrent funding has exactly one winner",
+    "Other GPU credential cannot start job",
+    "Wrong lease rejected",
+    "Assigned worker starts job",
+    "No artifact cannot settle or pay",
+    "Wrong artifact hash rejected",
+    "Hash-consistent numerically incorrect artifact rejected",
+    "Rejected result does not complete job",
+    "Worker failure refunds escrow",
+    "Late worker cannot restart refunded job",
+    "Refresh worker before concurrent scheduling",
+    "Create competing job",
+    "Fund competing job",
+    "Two funded jobs cannot reserve the same slot concurrently",
+    "Refund competing test job"
+  ],
+  "refund": {
+    "jobId": "6afd1718de91e5fc2954b80e",
+    "receipts": [
+      {
+        "action": "JobRegistered",
+        "txHash": "0x6c99939d9f6486fce34583443e77246a24105a7697f2c831632cd713691bb0b5",
+        "gasUsed": "97092",
+        "blockNumber": 76,
+        "amountWei": null
+      },
+      {
+        "action": "FundsDeposited",
+        "txHash": "0xf293eaa49c52b84849eefcf22f3c4aee47da24620e11bf4221505448d5a28e26",
+        "gasUsed": "53319",
+        "blockNumber": 77,
+        "amountWei": "1000000000000000"
+      },
+      {
+        "action": "JobAssigned",
+        "txHash": "0x035b80a47387c65c7211727730b77d550eb473554a2f7239b86e457faf6bde3f",
+        "gasUsed": "56010",
+        "blockNumber": 78,
+        "amountWei": null
+      },
+      {
+        "action": "RefundIssued",
+        "txHash": "0xbf78429772867e70079ea622f815aed9a6f775701262785a5ca325beda50ffd8",
+        "gasUsed": "54230",
+        "blockNumber": 79,
+        "amountWei": "1000000000000000"
+      }
+    ]
+  }
+}

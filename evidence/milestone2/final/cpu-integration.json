@@ -1,0 +1,99 @@
+{
+  "recordedAt": "2026-11-18T03:12:40.570Z",
+  "environment": "Laptop 1; CPU; local Hardhat; no GPU claim",
+  "samples": [
+    {
+      "jobId": "6afd1793de91e5fc2954b822",
+      "endToEndMs": 21531.9689,
+      "resultHash": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+      "executionMode": "real_cpu_test",
+      "metadata": {
+        "status": "success",
+        "capabilities": {
+          "executionMode": "real_cpu_test",
+          "python": "3.13.7",
+          "torch": "2.12.1+cpu",
+          "os": "Windows-11-10.0.26200-SP0",
+          "cudaVersion": "0",
+          "gpuModel": "CPU development test (not a GPU)",
+          "gpuMemory": 0,
+          "deviceIndex": null
+        },
+        "spec": {
+          "size": 128,
+          "seed": 42,
+          "dtype": "float32",
+          "executionMode": "real_cpu_test"
+        },
+        "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+        "artifactBytes": 65664,
+        "verified": true,
+        "maxAbsoluteError": 0.000007124181298223675,
+        "timingsMs": {
+          "warmup": 0.3198999997948704,
+          "hostToDevice": null,
+          "kernel": 0.03870000000461005,
+          "deviceToHost": null,
+          "cpuFloat64Reference": 1.2722000001303968,
+          "cpuFloat32Kernel": 0.04509999962465372,
+          "total": 1492.4347999999554
+        },
+        "peakAllocatedBytes": null,
+        "peakReservedBytes": null,
+        "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate"
+      },
+      "receipts": [
+        {
+          "action": "JobRegistered",
+          "txHash": "0x5e2bed4fad777ef91b6f124df7eafa3e58aa25f5a102f0415dc26eba64feb4cd",
+          "gasUsed": "97092",
+          "blockNumber": 91,
+          "amountWei": null
+        },
+        {
+          "action": "FundsDeposited",
+          "txHash": "0xd42eae36b3d6ad1cbb655271605db5a570d01f9b03e028bf7bc2e6a4e3a0d298",
+          "gasUsed": "53319",
+          "blockNumber": 92,
+          "amountWei": "1000000000000000"
+        },
+        {
+          "action": "JobAssigned",
+          "txHash": "0xd959b726104f2df326231cee34ccda0c73c700fda1a4e8c634fb542c8e0361ee",
+          "gasUsed": "56010",
+          "blockNumber": 93,
+          "amountWei": null
+        },
+        {
+          "action": "ResultSubmitted",
+          "txHash": "0xdfb5767593c22c6466ff2a598c0000dd10688df314173c16c8ad160d354f94fe",
+          "gasUsed": "53844",
+          "blockNumber": 94,
+          "amountWei": null
+        },
+        {
+          "action": "ResultVerified",
+          "txHash": "0xe82f430de3690171e111c72fa6d9974d829140535ef77b50c9206a9a112a83fc",
+          "gasUsed": "33401",
+          "blockNumber": 95,
+          "amountWei": null
+        },
+        {
+          "action": "PaymentReleased",
+          "txHash": "0xbcc1bc58a4e68e5d8fa50760528635040340469a89aceed851074d6436388e4f",
+          "gasUsed": "54263",
+          "blockNumber": 96,
+          "amountWei": "1000000000000000"
+        }
+      ],
+      "paymentWei": "1000000000000000",
+      "verification": {
+        "verified": true,
+        "maxAbsoluteError": 0.000007124181298223675,
+        "rtol": 0.0001,
+        "atol": 0.0001
+      },
+      "queueMs": 2527
+    }
+  ]
+}

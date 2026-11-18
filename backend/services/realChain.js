@@ -7,7 +7,7 @@ const { ESCROW_ABI } = require("../blockchain/contractAbi");
 const journalSchema = new mongoose.Schema({
   jobId: mongoose.Schema.Types.ObjectId, instance: String, action: String,
   txHash: { type: String, unique: true }, raw: { type: String, select: false },
-  status: String, gasUsed: String, blockNumber: Number, amountWei: String,
+  status: String, gasUsed: String, blockNumber: Number, amountWei: String, confirmationMs: Number,
 }, { timestamps: true });
 const Journal = mongoose.model("ChainJournal", journalSchema);
 
@@ -30,15 +30,17 @@ async function check(job) {
   }
   return current;
 }
-async function receiptRecord(job, receipt, action, amountWei) {
+async function receiptRecord(job, receipt, action, amountWei, confirmationMs) {
   if (!receipt || receipt.status !== 1 || receipt.to?.toLowerCase() !== bc.contractAddress.toLowerCase()) {
     throw new Error("Successful escrow receipt required");
   }
   const record = { action, txHash: receipt.hash, gasUsed: receipt.gasUsed.toString(),
     blockNumber: receipt.blockNumber, amountWei: amountWei || null };
-  await Journal.updateOne({ txHash: receipt.hash }, { $set: {
+  if (Number.isFinite(confirmationMs)) record.confirmationMs = confirmationMs;
+  const journal = await Journal.findOneAndUpdate({ txHash: receipt.hash }, { $set: {
     ...record, jobId: job._id, instance: job.chainInstance, status: "CONFIRMED",
-  } }, { upsert: true });
+  } }, { upsert: true, returnDocument: "after" });
+  if (Number.isFinite(journal.confirmationMs)) record.confirmationMs = journal.confirmationMs;
   await Job.updateOne({ _id: job._id, "receipts.txHash": receipt.hash }, {
     $set: { "receipts.$": record },
   });
@@ -62,9 +64,11 @@ async function send(job, action, args, consumer = false, value = 0n) {
         action, txHash: ethers.keccak256(raw), raw, status: "PENDING" });
     }
     let receipt = await readReceipt(pending.txHash);
+    let broadcastStart;
     if (!receipt) {
-      try { await bc.provider.broadcastTransaction(pending.raw); }
+      try { broadcastStart = performance.now(); await bc.provider.broadcastTransaction(pending.raw); }
       catch (error) {
+        broadcastStart = undefined;
         if (!await bc.provider.getTransaction(pending.txHash)) throw error;
       }
       // Poll raw receipts: avoid provider block-number/receipt caching when
@@ -83,7 +87,7 @@ async function send(job, action, args, consumer = false, value = 0n) {
       await Journal.updateOne({ _id: pending._id }, { $set: { status: "REVERTED" } });
       throw new Error(`${action} reverted`);
     }
-    return receiptRecord(job, receipt, action);
+    return receiptRecord(job, receipt, action, null, broadcastStart === undefined ? undefined : performance.now() - broadcastStart);
   });
 }
 async function events(job) {

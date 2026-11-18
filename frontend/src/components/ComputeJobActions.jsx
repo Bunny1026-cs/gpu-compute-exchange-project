@@ -14,8 +14,20 @@ export default function ComputeJobActions({ job, consumer = false, refresh }) {
   return <section className="detail-section" onClick={(event) => event.stopPropagation()}>
     <p><strong>{job.spec?.executionMode === "real_cpu_test" ? "CPU development test — not GPU evidence" : "CUDA GPU workload"}</strong></p>
     <p>{job.spec?.size} × {job.spec?.size}, float32 · Seed {job.spec?.seed}</p>
+    <p>Job status · {job.status}</p>
     <p>Local test ETH: {job.rateWeiPerMinute} wei/min × {job.reservedMinutes} min = {job.escrowAmountWei} wei</p>
     {job.paymentWei && <p>Payment released: {job.paymentWei} wei (confirmed event)</p>}
+    {job.resultHash && <div style={{ overflowWrap: "anywhere" }}>
+      <p>Artifact storage · {job.ipfsCid ? "Kubo IPFS and local file" : "Local file"}</p>
+      <p>SHA-256 · {job.resultHash}</p>
+      {job.verification?.verified && <p>CPU reference verified · maximum absolute error {job.verification.maxAbsoluteError}</p>}
+      {job.verification?.preview && <details>
+        <summary>Verified matrix preview (top left)</summary>
+        <table><tbody>{job.verification.preview.map((row, i) => <tr key={i}>
+          {row.map((value, j) => <td key={j}>{value.toPrecision(6)}</td>)}
+        </tr>)}</tbody></table>
+      </details>}
+    </div>}
     {job.error && <p role="status" style={{ color: "var(--danger)" }}>{job.error}</p>}
     {error && <p role="alert" style={{ color: "var(--danger)" }}>{error}</p>}
     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -29,6 +41,7 @@ export default function ComputeJobActions({ job, consumer = false, refresh }) {
       {job.receipts.map((receipt) => <div key={receipt.txHash} style={{ overflowWrap: "anywhere", marginTop: 12 }}>
         <strong>{receipt.action}</strong><br />{receipt.txHash}<br />Gas: {receipt.gasUsed} · Block: {receipt.blockNumber}
         {receipt.amountWei && <span> · {receipt.amountWei} wei</span>}
+        {Number.isFinite(receipt.confirmationMs) && <span> · Receipt observed in {receipt.confirmationMs.toFixed(1)} ms</span>}
       </div>)}
     </details>}
   </section>;

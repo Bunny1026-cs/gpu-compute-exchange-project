@@ -59,7 +59,11 @@ async function main() {
   let response = await fetch(base + `/worker/jobs/${job._id}/result`, { method: "POST", headers: { ...headers, "X-Result-Hash": "0".repeat(64) }, body: bytes });
   assert.equal(response.status, 400); checks.push("Wrong artifact hash rejected");
   const wrong = Buffer.from(bytes); wrong.writeFloatLE(10000, wrong.length - 4);
-  response = await fetch(base + `/worker/jobs/${job._id}/result`, { method: "POST", headers: { ...headers, "X-Result-Hash": crypto.createHash("sha256").update(wrong).digest("hex") }, body: wrong });
+  const wrongHash = crypto.createHash("sha256").update(wrong).digest("hex");
+  const wrongMetadata = Buffer.from(JSON.stringify({ ...metadata, sha256: wrongHash })).toString("base64");
+  response = await fetch(base + `/worker/jobs/${job._id}/result`, { method: "POST", headers: {
+    ...headers, "X-Result-Hash": wrongHash, "X-Result-Metadata": wrongMetadata,
+  }, body: wrong });
   assert.equal(response.status, 400); checks.push("Hash-consistent numerically incorrect artifact rejected");
   assert.equal((await getJob(job._id)).status, "RUNNING"); checks.push("Rejected result does not complete job");
   const refunded = expect(await request(`/worker/jobs/${job._id}/fail`, { reason: "Intentional tested worker failure" }, workerHeaders(job)), 200, "Worker failure refunds escrow");
@@ -88,10 +92,11 @@ async function main() {
   }
   // Leave demo slot available for subsequent worker restart/provisioning.
   for (const slot of [gpu, otherGpu]) await request(`/gpus/${slot._id}`, { availability: false }, providerHeaders(), "PUT");
-  for (const slot of slots) await request(`/gpus/${slot._id}`, { availability: true }, providerHeaders(), "PUT");
-  fs.mkdirSync(path.join(root, "evidence"), { recursive: true });
+  for (const slot of slots) await request(`/gpus/${slot._id}`, { availability: slot.availability }, providerHeaders(), "PUT");
+  const directory = path.resolve(process.env.EVIDENCE_DIR || path.join(root, "evidence"));
+  fs.mkdirSync(directory, { recursive: true });
   const evidence = { recordedAt: new Date().toISOString(), checks: [...new Set(checks)], refund: { jobId: refunded._id, receipts: refunded.receipts } };
-  fs.writeFileSync(path.join(root, "evidence/security-integration.json"), JSON.stringify(evidence, null, 2));
+  fs.writeFileSync(path.join(directory, "security-integration.json"), JSON.stringify(evidence, null, 2));
   console.log(`PASS: ${evidence.checks.length} distinct live security/reliability checks`);
 }
 main().catch((error) => { console.error(error); process.exitCode = 1; });

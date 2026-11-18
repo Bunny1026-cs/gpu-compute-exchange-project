@@ -1,0 +1,141 @@
+{
+  "recordedAt": "2026-11-18T16:01:22.944Z",
+  "gitCommit": "165b01e58ab35f9eb701b264d1142903dd9609e0",
+  "executionMode": "real_cpu_test",
+  "chain": "Local Hardhat 31337",
+  "samples": [
+    {
+      "jobId": "6afdcbc46b3a38c7947f15d9",
+      "endToEndMs": 13950.940999999999,
+      "downloadMs": 10.841800000000148,
+      "receiveMs": 0.22669999999925494,
+      "queueWaitMs": 136.32170000000042,
+      "schedulingMs": 510.7240999999922,
+      "resultHash": "a832a3d577c2d0f4ade0cf07507301d49610dc200460ab85f6d7e1b44bd45703",
+      "executionMode": "real_cpu_test",
+      "metadata": {
+        "status": "success",
+        "capabilities": {
+          "executionMode": "real_cpu_test",
+          "python": "3.13.7",
+          "torch": "2.12.1+cpu",
+          "os": "Windows-11-10.0.26200-SP0",
+          "cudaVersion": "0",
+          "gpuModel": "CPU development test (not a GPU)",
+          "gpuMemory": 0,
+          "deviceIndex": null
+        },
+        "spec": {
+          "size": 64,
+          "seed": 42,
+          "dtype": "float32",
+          "executionMode": "real_cpu_test"
+        },
+        "sha256": "a832a3d577c2d0f4ade0cf07507301d49610dc200460ab85f6d7e1b44bd45703",
+        "artifactBytes": 16512,
+        "verified": true,
+        "maxAbsoluteError": 0.0000033711581046702577,
+        "numpyVersion": "2.3.4",
+        "cpuThreads": 4,
+        "timingsMs": {
+          "libraryImport": 2495.2508000001217,
+          "capabilityProbe": 14.337000000068656,
+          "warmup": 0.26010000010501244,
+          "hostToDevice": null,
+          "kernel": 0.012800000149582047,
+          "deviceToHost": null,
+          "cpuFloat64Reference": 1.0856999997486128,
+          "cpuFloat32Kernel": 0.01249999968422344,
+          "total": 1127.3928000000524,
+          "childWall": 4102.5673000003735
+        },
+        "peakAllocatedBytes": null,
+        "peakReservedBytes": null,
+        "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate"
+      },
+      "receipts": [
+        {
+          "action": "JobRegistered",
+          "txHash": "0x3e09fec6d2eb85e78e9a751119768f0665e3a4f9afbb40f35ea323e835cfd051",
+          "gasUsed": "97092",
+          "blockNumber": 41,
+          "amountWei": null,
+          "confirmationMs": 50.22110000002431
+        },
+        {
+          "action": "FundsDeposited",
+          "txHash": "0xfb68913e7ecd73657d9b8a24cc30e7a4568b511c8198d69f12e2c3454c8dcdbb",
+          "gasUsed": "53319",
+          "blockNumber": 42,
+          "amountWei": "1000000000000000",
+          "confirmationMs": 39.86040000000503
+        },
+        {
+          "action": "JobAssigned",
+          "txHash": "0x37bf7b799668824c47e6a9b71483b334ece1ef56260c25f672bb5698eafde77a",
+          "gasUsed": "56010",
+          "blockNumber": 43,
+          "amountWei": null,
+          "confirmationMs": 49.00119999999879
+        },
+        {
+          "action": "ResultSubmitted",
+          "txHash": "0xbedd8789098cffe8c76cd64dbece658fcf8032b9faa1288cfff01042ade2b029",
+          "gasUsed": "53844",
+          "blockNumber": 44,
+          "amountWei": null
+        },
+        {
+          "action": "ResultVerified",
+          "txHash": "0x31d09ed0ea9bf80b860a5721eb6cb238ed7e23cca8233d55f89eaa2984050031",
+          "gasUsed": "33401",
+          "blockNumber": 45,
+          "amountWei": null,
+          "confirmationMs": 47.911800000001676
+        },
+        {
+          "action": "PaymentReleased",
+          "txHash": "0x4d5f05c0e57b312b09f3cb845bbd4cc05855d0a90b6a6f2e15d1b78f0945f3e2",
+          "gasUsed": "54263",
+          "blockNumber": 46,
+          "amountWei": "1000000000000000",
+          "confirmationMs": 38.68419999998878
+        }
+      ],
+      "paymentWei": "1000000000000000",
+      "verification": {
+        "verified": true,
+        "preview": [
+          [
+            1.3760802745819092,
+            -0.5325015783309937,
+            -2.109886884689331,
+            -0.9393145442008972
+          ],
+          [
+            1.033506989479065,
+            4.228654384613037,
+            4.28239631652832,
+            -4.508656978607178
+          ],
+          [
+            2.3611655235290527,
+            -1.64357328414917,
+            1.272160530090332,
+            -1.6989609003067017
+          ],
+          [
+            -6.442986011505127,
+            2.2922635078430176,
+            4.361945629119873,
+            0.9405853152275085
+          ]
+        ],
+        "maxAbsoluteError": 0.0000033711581046702577,
+        "rtol": 0.0001,
+        "atol": 0.0001
+      },
+      "queueMs": 647
+    }
+  ]
+}

@@ -29,10 +29,10 @@ Laptop 2 worker configured from `worker/.env.laptop2.example`.
 
 ## Workflow and integrity
 
-Consumer login ? immutable matrix specification and quote ? confirmed demo-wallet
-funding ? greedy GPU matching ? leased worker execution ? exact-byte artifact
-upload ? independent numerical verification ? provider-signed submitResult ?
-operator verification ? receipt/event-confirmed payment ? updated dashboards.
+The consumer submits an immutable matrix specification, reviews the quote and funds escrow.
+The scheduler reserves a matching worker. After execution, the backend verifies the uploaded
+bytes and numerical output. The provider signs submitResult, the operator verifies and releases
+payment, and both dashboards show the confirmed receipt and event amount.
 
 Jobs use AWAITING_FUNDING, QUEUED, ASSIGNED, RUNNING, RESULT_UPLOADED,
 SETTLEMENT_PENDING, COMPLETED, REFUND_PENDING, REFUNDED, FAILED and CANCELLED states.
@@ -48,7 +48,10 @@ Hardhat instance IDs prevent reuse of funding from a reset chain.
 
 ## Scope and honest verification
 
-The real artifact path uses explicitly labeled local file storage. Legacy IPFS and
+The backend stores each verified artifact locally and attempts to pin the same bytes to
+Kubo through its API on Laptop 1 (default `http://127.0.0.1:5001`). A CID is recorded
+only after binary read-back matches. Downloads check SHA-256 and can use the local copy.
+Set `IPFS_API_URL=` in the backend runtime environment for local-file-only operation. Legacy IPFS and
 simulated executor modules remain for preserved regression tests and are not invoked
 by the supported real worker/server workflow. The historical Docker Compose all-stack
 recipe is not the supported real-compute demo; native startup is documented instead.

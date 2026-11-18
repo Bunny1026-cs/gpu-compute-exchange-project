@@ -1,0 +1,10 @@
+{
+  "jobId": "6afdcc666b3a38c7947f15f9",
+  "hash": "a832a3d577c2d0f4ade0cf07507301d49610dc200460ab85f6d7e1b44bd45703",
+  "mode": "real_cpu_test",
+  "verifiedPreviewCells": 16,
+  "browserErrors": [],
+  "paymentEvent": "PaymentReleased",
+  "refundEvent": "RefundIssued",
+  "retiredOfflineSlot": "6afdcc7f6b3a38c7947f1603"
+}

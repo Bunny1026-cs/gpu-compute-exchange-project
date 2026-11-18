@@ -30,10 +30,12 @@ const backend = {
 };
 const workerFile = path.join(runtime, "worker.env");
 const existing = fs.existsSync(workerFile) ? require("../backend/node_modules/dotenv").parse(fs.readFileSync(workerFile)) : {};
-const worker = { BACKEND_URL: "http://127.0.0.1:5000/api", EXECUTION_MODE: mode, FINAL_DEMO: String(mode === "real_gpu"),
+const worker = mode === "real_cpu_test" ? { BACKEND_URL: "http://127.0.0.1:5000/api", EXECUTION_MODE: mode, FINAL_DEMO: "false",
   BLOCKCHAIN_RPC_URL: "http://127.0.0.1:8545", PROVIDER_PRIVATE_KEY: account(3).privateKey,
-  WORKER_API_KEY: existing.WORKER_API_KEY || "configure-through-provider-dashboard-or-provision-script" };
-for (const [name, values] of [["backend.env", backend], ["worker.env", worker]]) {
+  WORKER_API_KEY: existing.WORKER_API_KEY || "configure-through-provider-dashboard-or-provision-script" } : null;
+const configs = [["backend.env", backend]];
+if (worker) configs.push(["worker.env", worker]);
+for (const [name, values] of configs) {
   fs.writeFileSync(path.join(runtime, name), Object.entries(values).map(([key, value]) => `${key}=${value}`).join("\n") + "\n");
 }
 console.log(`Prepared ignored runtime configuration (${mode}). Login credentials: runtime/accounts.json`);

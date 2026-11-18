@@ -1,0 +1,45 @@
+{
+  "os": "Windows-11-10.0.26200-SP0",
+  "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+  "cuda": {
+    "status": "failed",
+    "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+    "os": "Windows-11-10.0.26200-SP0",
+    "torch_version": "2.12.1+cpu",
+    "torch_cuda": null,
+    "cuda_available": false,
+    "compiled_architectures": [],
+    "error": "RuntimeError: CUDA unavailable; a physical compatible NVIDIA GPU and CUDA PyTorch build are required"
+  },
+  "nvidia_smi": {
+    "error": "[WinError 2] The system cannot find the file specified"
+  },
+  "backend": {
+    "status": "passed",
+    "url": "http://127.0.0.1:5000",
+    "health": {
+      "status": "ok",
+      "service": "gpu-compute-exchange-backend",
+      "version": "1.0.0",
+      "phase": "Real computation with receipt-confirmed escrow",
+      "executionMode": "real_cpu_test",
+      "timestamp": "2026-11-18T16:00:48.101Z",
+      "scheduler": {
+        "interval": 3000,
+        "devTrigger": null
+      },
+      "devRoutesEnabled": false,
+      "blockchain": {
+        "available": true,
+        "rpcUrl": "http://127.0.0.1:8545",
+        "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+        "demoMode": true
+      },
+      "database": {
+        "status": "connected",
+        "state": "connected"
+      }
+    },
+    "note": "HTTP reachability only; inspect database and blockchain separately"
+  }
+}

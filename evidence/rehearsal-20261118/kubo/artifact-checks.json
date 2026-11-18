@@ -1,0 +1,37 @@
+[
+  {
+    "jobId": "6afdcb336b3a38c7947f15b1",
+    "storage": "ipfs_and_local_file",
+    "cid": "bafkreiff64bt74zadfkmefga5fuqtlag5xphbgdwe32aue55l3h2bafolq",
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "corruptCopyRejected": true
+  },
+  {
+    "jobId": "6afdcb416b3a38c7947f15b7",
+    "storage": "ipfs_and_local_file",
+    "cid": "bafkreicodgwty5lcswoncaywpo2qj5xb3ab2udw3slznp43ootdiuzmrhi",
+    "sha256": "4e19ad3c7562959cd103167bb504f6e1d803aa0edb92f2d7f36e74c68a65913a",
+    "corruptCopyRejected": true
+  },
+  {
+    "jobId": "6afdcb536b3a38c7947f15bd",
+    "storage": "ipfs_and_local_file",
+    "cid": "bafkreibahdbfncqysipockvrs2egqgx5nrj6aod2majetm36rxxgbimeja",
+    "sha256": "2038c2568a18921ee12ab19688681afd6c53e0387a601249b37e8dee60a18448",
+    "corruptCopyRejected": true
+  },
+  {
+    "jobId": "6afdcb646b3a38c7947f15c3",
+    "storage": "ipfs_and_local_file",
+    "cid": "bafkreifjwu6f4sdqlsmmme3dv5jbkoy3t3zhbhkgx2it2esizum3pdnuzu",
+    "sha256": "a9b53c5e48705c98c61363af52153b1b9ef2709d46be913d1248cd19b78db4cd",
+    "corruptCopyRejected": true
+  },
+  {
+    "jobId": "6afdcb746b3a38c7947f15c9",
+    "storage": "ipfs_and_local_file",
+    "cid": "bafkreid6xwvakhy6mxivwz6ykfbptssk7p5n3374r7qequegj2i2vvcufa",
+    "sha256": "7ebdaa051f1e65d15b67d85142f9ca4afbfaddeffc8fe04850864e91aad45428",
+    "corruptCopyRejected": true
+  }
+]

@@ -1,5 +1,30 @@
 # Actual test results
 
+## November 18 local acceptance run
+
+On the working tree based on `165b01e`, Laptop 1 ran MongoDB 7, a freshly deployed
+Hardhat escrow, Express, Vite, a native PyTorch CPU worker and an offline Kubo 0.32.1
+daemon. The application rehearsal used a separate MongoDB database.
+
+| Executed check | Outcome |
+| --- | --- |
+| Backend / Solidity / worker regression suites | 90 / 37 / 25 passed. The worker suite also checked OS lock exclusion and release using a test device identifier. |
+| Frontend production build and lint | Both exited successfully. |
+| Kubo available | Five jobs paid exactly their quoted escrow. Each verified NumPy download matched a direct Kubo binary read and its SHA-256. Five modified temporary copies failed integrity checks. |
+| Kubo stopped | One additional job paid and returned a verified local file with a null CID. Its modified copy failed integrity checks. |
+| Independent MongoDB and chain audit | All six collector jobs had matching database and contract status, result commitment, released wei, and released reservation. Each had six successful, event-matched receipts from the expected consumer, operator and provider signers. |
+| Browser registration | Fresh consumer and provider registrations reached their respective dashboards. The final Kubo walkthrough then repeated funding, payment, verified download, refund, and offline slot management. |
+| Consumer and provider browser walkthrough | Two separate browser sessions logged in. The consumer submitted, funded, previewed and downloaded its output. The provider saw the matching payment receipt. The local-file run also exercised a queued-job refund and offline slot creation, credential issuance, editing and retirement. Both browser reports recorded zero uncaught page errors. |
+| Concurrent funding, job ownership, result validation and refunds | 28 live security and reliability checks passed. A separate expired-lease exercise produced an on-chain refund and cleared the reservation. |
+| Reset protection and clean reset | The CLI refused the active deployment. In a disposable MongoDB container connected to the real Hardhat RPC, it also refused a current-instance job, cleared seeded prior-instance records and reservations, and preserved both backend and worker artifact bytes in timestamped backups. |
+| Laptop 1 preflight | Loopback HTTP check passed. CUDA check failed as expected with CPU-only PyTorch. |
+
+Raw receipts, file digests, per-job timing, browser screenshots and the preflight
+report are under [the November 18 rehearsal](evidence/rehearsal-20261118/).
+Physical CUDA, cross-laptop LAN and the final recorded demonstration remain **NOT VERIFIED**.
+
+## Earlier revision
+
 Initial implementation checkpoint: `905187b` on `implementation/real-compute-workflow`.
 Evidence files retain their original recordedAt timestamps. Session/server restarts
 occurred during work; they are not counted as successful tests.

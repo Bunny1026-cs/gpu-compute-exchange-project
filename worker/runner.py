@@ -5,8 +5,10 @@ import os
 from pathlib import Path
 import subprocess
 import threading
+import tempfile
 import time
 import uuid
+from contextlib import contextmanager
 
 import requests
 from dotenv import load_dotenv
@@ -14,6 +16,34 @@ from matrix_workload import execute
 
 ROOT = Path(__file__).resolve().parent
 load_dotenv(os.getenv("WORKER_ENV_FILE", str(ROOT / ".env")))
+
+
+@contextmanager
+def device_lock(capabilities):
+    """Hold an OS lock while this physical GPU is advertised, across worker slots."""
+    if capabilities["executionMode"] != "real_gpu":
+        yield
+        return
+    import hashlib
+    # CUDA_VISIBLE_DEVICES can renumber the same physical device across processes.
+    device = capabilities.get("deviceUuid") or "unidentified-cuda-device"
+    key = hashlib.sha256(device.encode()).hexdigest()
+    lockfile = Path(tempfile.gettempdir()) / ("bdgce-gpu-" + key + ".lock")
+    with lockfile.open("a+b") as handle:
+        try:
+            if os.name == "nt":
+                import msvcrt
+                if handle.tell() == 0:
+                    handle.write(b"0")
+                    handle.flush()
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as error:
+            raise RuntimeError("Another worker owns this GPU, or its device lock is inaccessible") from error
+        yield
 
 
 def signer(*args):
@@ -74,6 +104,8 @@ class Worker:
         self.current = job
         self.heartbeat()
         route = "/worker/jobs/" + job["_id"]
+        timing_file = self.output / (job["_id"] + ".timing.json")
+        timing = {"jobId": job["_id"]}
         try:
             if job["spec"]["executionMode"] != self.mode:
                 raise ValueError("Workload execution mode mismatch")
@@ -86,17 +118,24 @@ class Worker:
                     self.api("POST", route + "/fail", job, json={"reason": str(error)[:1000]})
                     return
                 (self.output / (job["_id"] + ".json")).write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+                artifact = file.read_bytes()
                 t0 = time.perf_counter()
-                accepted = self.api("POST", route + "/result", job, data=file.read_bytes(), headers={
+                accepted = self.api("POST", route + "/result", job, data=artifact, headers={
                     "Content-Type": "application/octet-stream",
                     "X-Result-Hash": metadata["sha256"],
                     "X-Result-Metadata": base64.b64encode(json.dumps(metadata).encode()).decode(),
                 })
-                print(json.dumps({"jobId": job["_id"], "uploadAndVerifyMs": (time.perf_counter()-t0)*1000}), flush=True)
+                timing["uploadAndVerifyMs"] = (time.perf_counter() - t0) * 1000
+                timing_file.write_text(json.dumps(timing, indent=2), encoding="utf-8")
                 result_hash = accepted["resultHash"]
             else:
                 result_hash = job["resultHash"]
+                if timing_file.exists():
+                    timing = json.loads(timing_file.read_text(encoding="utf-8"))
             receipt = signer(job["contractAddress"], job["blockchainJobId"], "0x" + result_hash, job["chainInstance"])
+            if "txHash" in receipt:
+                timing["providerReceipt"] = receipt
+                timing_file.write_text(json.dumps(timing, indent=2), encoding="utf-8")
             print(json.dumps({"providerSubmission": receipt, "jobId": job["_id"]}), flush=True)
             completed = self.api("POST", route + "/complete", job, json={})
             print(json.dumps({"jobId": job["_id"], "status": completed["status"]}), flush=True)
@@ -123,6 +162,8 @@ class Worker:
 
 if __name__ == "__main__":
     try:
-        Worker().run()
+        worker = Worker()
+        with device_lock(worker.capabilities):
+            worker.run()
     except KeyboardInterrupt:
         print("Worker stopped")

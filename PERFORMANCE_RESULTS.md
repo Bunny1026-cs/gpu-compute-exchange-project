@@ -1,5 +1,29 @@
 # Genuine local performance results
 
+## November 18 CPU rehearsal
+
+Five fresh 128×128 jobs used Kubo, local MongoDB and Hardhat. The client measured
+from submission until observing completed payment. The worker measured upload
+through receipt of the backend verification response. All durations below are ms.
+
+| Measurement | Samples | Minimum | Median | Maximum |
+| --- | ---: | ---: | ---: | ---: |
+| Submission through observed payment | 5 | 14008.346 | 17018.953 | 19420.430 |
+| Queue wait | 5 | 70.809 | 1727.646 | 2446.661 |
+| Scheduling through confirmed assignment | 5 | 457.823 | 486.938 | 495.526 |
+| Upload and verification round trip | 5 | 4448.754 | 4690.272 | 5785.202 |
+| Warm CPU kernel, 128×128 | 10 | 0.024 | 0.036 | 0.108 |
+| Warm CPU kernel, 256×256 | 10 | 0.128 | 0.209 | 0.658 |
+| Warm CPU kernel, 512×512 | 10 | 1.540 | 2.187 | 3.565 |
+
+Windows 11, Python 3.13.7, PyTorch 2.12.1+cpu, float32. Local services and some
+acceptance checks were active during compute sampling. These figures describe a
+development laptop under that load. The raw reports include transfer timings,
+per-action gas, and local receipt observation times where observed. Samples
+reference the working tree based on commit 165b01e. [Application measurements](evidence/rehearsal-20261118/kubo/application-summary.json) · [Compute samples](evidence/rehearsal-20261118/compute/raw.json)
+
+## Earlier CPU rehearsal
+
 All results here are **Laptop 1 real_cpu_test**, not GPU performance. Environment:
 Windows 11 x64, Python 3.13.7, PyTorch 2.12.1+cpu. Float32 matrices are generated
 with NumPy PCG64 seed; correctness uses a float64 CPU reference, rtol/atol 1e-4.
@@ -68,3 +92,44 @@ identical dimensions/dtypes/inputs; report all raw samples and median/min/max. C
 supported utilization telemetry on Laptop 2 separately. Never subtract wall-clock
 timestamps across machines without synchronization. No GPU or cross-laptop values
 are filled in until those measurements actually exist.
+
+### Collection commands for the current source revision
+
+On Laptop 2 use AC power, record the power profile, keep the GPU free of other
+jobs during compute-only measurements, and run from the project root:
+
+```powershell
+worker/.venv/Scripts/python.exe -m pip install "matplotlib>=3.9"
+worker/.venv/Scripts/python.exe worker/benchmark.py --mode real_gpu --sizes 128 256 512 --runs 10 --output evidence/gpu-benchmark
+```
+
+The raw report includes import, capability-probe, warmup, child-process and kernel
+durations. NVIDIA telemetry samples the selected UUID across the child's lifetime,
+including startup. Utilization is device-wide. An empty telemetry series or an
+unavailable reading is missing data. Save the driver information from preflight too.
+
+With the GPU worker running and the demo accounts provisioned, on Laptop 1:
+
+```powershell
+$env:EVIDENCE_DIR = Join-Path $PWD ("evidence/gpu-application-" + (Get-Date -Format yyyyMMdd-HHmmss))
+node ops/integration.cjs 5 real_gpu 128
+python -m pip install "matplotlib>=3.9"
+python ops/summarize-runs.py "$env:EVIDENCE_DIR/gpu-integration.json"
+```
+
+Copy the matching `worker/results/*.timing.json` files from Laptop 2 to a folder
+on Laptop 1, then include its path to join provider-signed receipt timings and
+upload round trips by job ID and transaction hash:
+
+```powershell
+python ops/summarize-runs.py "$env:EVIDENCE_DIR/gpu-integration.json" --worker-results "$env:EVIDENCE_DIR/worker-timings"
+```
+
+Queue wait ends when the successful scheduling attempt begins. It is omitted if
+the backend restarted between funding and assignment. Scheduling includes on-chain
+assignment. Receive time covers backend HTTP body consumption. Worker upload time
+includes verification and the HTTP response. Client download time includes retrieval.
+End-to-end time ends when the client observes COMPLETED, before artifact download and
+retry checks. Receipt time is elapsed on the submitting process through receipt
+observation on local Hardhat. Recovered historical receipts can lack that measurement.
+The CSV, summary JSON and plot use measured observations only.

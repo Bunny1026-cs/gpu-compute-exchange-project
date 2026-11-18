@@ -14,7 +14,7 @@ RUN npm ci
 COPY . .
 
 # Build-time env vars for Vite
-ARG VITE_API_URL=http://localhost:5000/api
+ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
 
 RUN npm run build
@@ -30,6 +30,7 @@ RUN echo 'server { \
     listen 3000; \
     root /usr/share/nginx/html; \
     index index.html; \
+    location /api/ { proxy_pass http://backend:5000; } \
     location / { \
         try_files $uri $uri/ /index.html; \
     } \

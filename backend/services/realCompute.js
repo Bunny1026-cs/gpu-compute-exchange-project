@@ -11,7 +11,8 @@ const chain = require("./realChain");
 const { findBestGPU, parseCuda } = require("../scheduler/matcher");
 const runFile = promisify(execFile);
 const artifactRoot = path.resolve(process.env.RESULT_STORAGE_DIR || path.join(__dirname, "../results"));
-const hash = (value) => crypto.createHash("sha256").update(value).digest("hex");
+const { hash, pinVerified, readVerified } = require("./artifactStorage");
+const clockId = crypto.randomUUID();
 const fail = (message, statusCode = 400) => Object.assign(new Error(message), { statusCode });
 const mode = () => process.env.EXECUTION_MODE || "real_gpu";
 const fresh = () => new Date(Date.now() - 30000);
@@ -72,7 +73,8 @@ async function fund(id) {
     onChain = await bc.getJob(job.blockchainJobId);
     const events = await chain.events(job);
     if (onChain.status !== 2 || onChain.payment !== job.escrowAmountWei || events.FundsDeposited?.amount.toString() !== job.escrowAmountWei) throw fail("Funding not confirmed", 409);
-    await Job.updateOne({ _id: id }, { $set: { status: "QUEUED", fundedAt: new Date(), error: null } });
+    await Job.updateOne({ _id: id }, { $set: { status: "QUEUED", fundedAt: new Date(),
+      queueClockId: clockId, queueStartMs: performance.now(), error: null } });
     return Job.findById(id);
   });
 }
@@ -88,11 +90,11 @@ async function reconcile(job) {
           state.provider.toLowerCase() !== job.providerWallet?.toLowerCase() ||
           events.PaymentReleased.provider.toLowerCase() !== job.providerWallet?.toLowerCase() ||
           events.PaymentReleased.amount.toString() !== job.escrowAmountWei) throw fail("Payment/result reconciliation mismatch", 409);
-      await Job.updateOne({ _id: job._id }, { $set: { status: "COMPLETED", completedAt: new Date(),
+      await Job.updateOne({ _id: job._id }, { $set: { status: "COMPLETED", completedAt: job.completedAt || new Date(),
         paymentWei: events.PaymentReleased.amount.toString(), error: null } });
     } else {
       if (!events.RefundIssued) throw fail("Refund event missing", 409);
-      await Job.updateOne({ _id: job._id }, { $set: { status: "REFUNDED", completedAt: new Date() } });
+      await Job.updateOne({ _id: job._id }, { $set: { status: "REFUNDED", completedAt: job.completedAt || new Date() } });
     }
     await release(job);
   }
@@ -103,7 +105,7 @@ async function settle(id) {
     let state = await reconcile(job);
     if ([6, 7].includes(state.status)) return Job.findById(id);
     if (!job.verification?.verified || !job.resultHash || !job.artifactPath) throw fail("Verified artifact required", 409);
-    if (hash(await fs.readFile(job.artifactPath)) !== job.resultHash) throw fail("Stored artifact integrity failure", 409);
+    await readVerified(job);
     if (![4, 5].includes(state.status) || state.resultHash.toLowerCase() !== `0x${job.resultHash}` ||
         state.provider.toLowerCase() !== job.providerWallet.toLowerCase()) throw fail("Awaiting matching provider-signed result", 409);
     await Job.updateOne({ _id: id }, { $set: { status: "SETTLEMENT_PENDING" } });
@@ -139,6 +141,7 @@ async function refund(id, reason) {
 async function assign(id) {
   return locked(id, async (job) => {
     if (job.status !== "QUEUED") return;
+    const schedulingStart = performance.now();
     await chain.check(job);
     if (job.specHash !== hash(JSON.stringify({ spec: job.spec, requirements: job.input.requirements || {} }))) throw fail("Workload specification changed");
     const state = await bc.getJob(job.blockchainJobId);
@@ -166,29 +169,44 @@ async function assign(id) {
     const assigned = await bc.getJob(job.blockchainJobId);
     if (assigned.status !== 3 || assigned.provider.toLowerCase() !== job.providerWallet.toLowerCase()) throw fail("Assignment mismatch");
     await chain.events(job);
-    await Job.updateOne({ _id: id }, { $set: { status: "ASSIGNED", assignedAt: new Date(), error: null } });
+    await Job.updateOne({ _id: id }, { $set: { status: "ASSIGNED", assignedAt: new Date(),
+      schedulingMs: performance.now() - schedulingStart,
+      queueWaitMs: job.queueClockId === clockId ? schedulingStart - job.queueStartMs : null, error: null } });
   });
 }
-async function acceptArtifact(id, gpu, leaseId, bytes, resultHash, metadata) {
+async function acceptArtifact(id, gpu, leaseId, bytes, resultHash, metadata, receiveMs) {
   return locked(id, async (job) => {
     if (String(job.gpuId) !== String(gpu._id) || job.leaseId !== leaseId || job.leaseExpiresAt < new Date()) throw fail("Stale or unauthorized lease", 409);
+    if (!Buffer.isBuffer(bytes) || hash(bytes) !== resultHash) throw fail("Artifact SHA-256 mismatch");
     if (["RESULT_UPLOADED", "SETTLEMENT_PENDING", "COMPLETED"].includes(job.status) && resultHash === job.resultHash) return job;
     if (job.status !== "RUNNING") throw fail("Job must be running", 409);
-    if (!Buffer.isBuffer(bytes) || hash(bytes) !== resultHash) throw fail("Artifact SHA-256 mismatch");
-    if (metadata.spec?.executionMode !== job.spec.executionMode || JSON.stringify(metadata.spec) !== JSON.stringify(job.spec)) throw fail("Result specification mismatch");
+    if (!metadata?.spec || Object.keys(metadata.spec).length !== Object.keys(job.spec).length ||
+        Object.entries(job.spec).some(([key, value]) => metadata.spec[key] !== value)) throw fail("Result specification mismatch");
+    if (metadata.sha256 !== resultHash || metadata.artifactBytes !== bytes.length ||
+        metadata.capabilities?.executionMode !== job.spec.executionMode) throw fail("Result metadata does not match uploaded artifact");
     await fs.mkdir(artifactRoot, { recursive: true });
     const file = path.join(artifactRoot, `${job._id}-${crypto.randomUUID()}.npy`);
+    let keepFile = false;
     try {
       await fs.writeFile(file, bytes, { flag: "wx" });
       const { stdout } = await runFile(process.env.PYTHON_EXECUTABLE || "python", [path.resolve(__dirname, "../../worker/matrix_workload.py"),
         "verify", "--spec", JSON.stringify(job.spec), "--artifact", file], { timeout: 60000, maxBuffer: 1024 * 1024 });
       const verification = JSON.parse(stdout);
       if (!verification.verified) throw fail("Numerical verification failed");
-      await Job.updateOne({ _id: id, status: "RUNNING", leaseId }, { $set: {
-        status: "RESULT_UPLOADED", artifactPath: file, resultHash, resultMetadata: metadata, verification,
+      const ipfsCid = await pinVerified(bytes);
+      // An interrupted database write can have committed. Preserve its exact file
+      // until recovery determines whether the job references this path.
+      keepFile = true;
+      const accepted = await Job.updateOne({ _id: id, status: "RUNNING", leaseId,
+        leaseExpiresAt: { $gt: new Date() } }, { $set: {
+        status: "RESULT_UPLOADED", artifactPath: file, ipfsCid, resultHash, resultMetadata: metadata, verification, receiveMs,
       } });
+      if (!accepted.matchedCount) {
+        keepFile = false;
+        throw fail("Lease expired before artifact acceptance", 409);
+      }
     } catch (error) {
-      await fs.unlink(file).catch(() => {});
+      if (!keepFile && error.code !== "EEXIST") await fs.unlink(file).catch(() => {});
       if (error.code === 1) throw fail("Artifact failed independent numerical verification");
       throw error;
     }
@@ -224,7 +242,7 @@ async function cycle() {
         else if (["RESULT_UPLOADED", "SETTLEMENT_PENDING"].includes(job.status)) {
           const state = await bc.getJob(job.blockchainJobId);
           if (state.status === 3 && job.leaseExpiresAt < new Date()) await refund(job._id, "Provider submission deadline expired");
-          else await settle(job._id);
+          else if (state.status !== 3) await settle(job._id);
         }
         else if (["ASSIGNED", "RUNNING"].includes(job.status) && job.leaseExpiresAt < new Date()) await refund(job._id, "Worker lease expired");
       } catch (error) {

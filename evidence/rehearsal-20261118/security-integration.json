@@ -1,0 +1,70 @@
+{
+  "recordedAt": "2026-11-18T16:02:11.993Z",
+  "checks": [
+    "Provider lists slots",
+    "Unlist idle slot for isolated test",
+    "Register test slot",
+    "Issue scoped credential",
+    "Register second slot",
+    "Issue different scoped credential",
+    "Genuine CPU capability heartbeat",
+    "Second live worker session rejected",
+    "Invalid worker key rejected",
+    "Arbitrary workload rejected",
+    "Create unfunded job",
+    "Read own job",
+    "Unfunded job not scheduled",
+    "Concurrent funding has exactly one winner",
+    "Other GPU credential cannot start job",
+    "Wrong lease rejected",
+    "Assigned worker starts job",
+    "No artifact cannot settle or pay",
+    "Wrong artifact hash rejected",
+    "Hash-consistent numerically incorrect artifact rejected",
+    "Rejected result does not complete job",
+    "Worker failure refunds escrow",
+    "Late worker cannot restart refunded job",
+    "Refresh worker before concurrent scheduling",
+    "Create competing job",
+    "Fund competing job",
+    "Two funded jobs cannot reserve the same slot concurrently",
+    "Refund competing test job"
+  ],
+  "refund": {
+    "jobId": "6afdcbeb6b3a38c7947f15e5",
+    "receipts": [
+      {
+        "action": "JobRegistered",
+        "txHash": "0xd04c0bc749187790cade9a3f17cbf3e9af89acb131ff2186254de4a4042f2d01",
+        "gasUsed": "97092",
+        "blockNumber": 50,
+        "amountWei": null,
+        "confirmationMs": 48.29059999997844
+      },
+      {
+        "action": "FundsDeposited",
+        "txHash": "0x1cafda81f2a16ea557bf649da9c649fcbf9259421b2d7d2c839317a64ada6cd3",
+        "gasUsed": "53319",
+        "blockNumber": 51,
+        "amountWei": "1000000000000000",
+        "confirmationMs": 47.0683999999892
+      },
+      {
+        "action": "JobAssigned",
+        "txHash": "0xe4dd10e284796881ee66d26d37fce8e7fcc84cdc888bace4a27cce6edc2eb69f",
+        "gasUsed": "56010",
+        "blockNumber": 52,
+        "amountWei": null,
+        "confirmationMs": 48.37280000001192
+      },
+      {
+        "action": "RefundIssued",
+        "txHash": "0xc1801e540692e70a2e3c6e70b116aa60046f65139a9ba81fd0dec41a716fac2b",
+        "gasUsed": "54230",
+        "blockNumber": 53,
+        "amountWei": "1000000000000000",
+        "confirmationMs": 47.24890000000596
+      }
+    ]
+  }
+}

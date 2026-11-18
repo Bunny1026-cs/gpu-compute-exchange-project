@@ -7,7 +7,9 @@ const { performance } = require("perf_hooks");
 const runtime = path.resolve(__dirname, "../runtime");
 const users = JSON.parse(fs.readFileSync(path.join(runtime, "accounts.json")));
 const base = process.env.BACKEND_URL || "http://127.0.0.1:5000/api";
-const evidenceDir = path.resolve(process.env.EVIDENCE_DIR || path.join(__dirname, "../evidence"));
+const mode = process.argv[3] || "real_cpu_test";
+const prefix = mode === "real_gpu" ? "gpu" : "cpu";
+const evidenceDir = path.resolve(process.env.EVIDENCE_DIR || path.join(__dirname, "../evidence", `${prefix}-${Date.now()}`));
 const samples = [];
 async function api(route, body, token, method = "POST", expected = 200) {
   const response = await fetch(base + route, { method, headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: body ? JSON.stringify(body) : undefined });
@@ -20,13 +22,18 @@ async function main() {
   const token = (await api("/auth/login", users.consumer)).token;
   const providerToken = (await api("/auth/login", users.provider)).token;
   const config = (await api("/compute/config", null, token, "GET")).data;
-  assert.equal(config.executionMode, "real_cpu_test", "This integration run is explicitly CPU development testing");
+  assert.ok(["real_gpu", "real_cpu_test"].includes(mode), "Choose real_gpu or real_cpu_test");
+  assert.equal(config.executionMode, mode, "Backend must match the requested execution mode");
   const count = Number(process.argv[2] || 5);
+  const size = Number(process.argv[4] || 128);
+  assert.ok(Number.isInteger(size) && size >= 2 && size <= 1024);
+  assert.ok(Number.isSafeInteger(count) && count >= (mode === "real_gpu" ? 5 : 1));
+  const gitCommit = require("child_process").execFileSync("git", ["rev-parse", "HEAD"], { cwd: __dirname, encoding: "utf8" }).trim();
+  console.log("Recording measurements in", evidenceDir);
   for (let index = 0; index < count; index++) {
     const t0 = performance.now();
-    const job = (await api("/jobs", { taskType: "matrix_multiply", input: { size: 128, seed: 42 + index }, reservedMinutes: 1 }, token, "POST", 201)).data;
+    const job = (await api("/jobs", { taskType: "matrix_multiply", input: { size, seed: 42 + index }, reservedMinutes: 1 }, token, "POST", 201)).data;
     assert.equal(job.status, "AWAITING_FUNDING");
-    await api(`/jobs/${job._id}/fund`, {}, providerToken, "POST", 403);
     const funded = (await api(`/jobs/${job._id}/fund`, {}, token)).data;
     assert.equal(funded.status, "QUEUED");
     let current;
@@ -38,14 +45,18 @@ async function main() {
       if (performance.now() > deadline) throw new Error(`Timed out: ${JSON.stringify(current)}`);
       await delay(1000);
     } while (true);
+    const endToEndMs = performance.now() - t0;
     assert.equal(current.verification.verified, true);
     assert.equal(current.paymentWei, current.escrowAmountWei);
-    assert.equal(current.resultMetadata.spec.executionMode, "real_cpu_test");
+    assert.equal(current.resultMetadata.spec.executionMode, mode);
+    assert.equal(current.resultMetadata.capabilities.executionMode, mode);
     assert.ok(current.receipts.some((receipt) => receipt.action === "PaymentReleased"));
     assert.ok(current.receipts.some((receipt) => receipt.action === "ResultSubmitted"));
+    const downloadStart = performance.now();
     const artifact = await fetch(base + `/jobs/${job._id}/artifact`, { headers: { Authorization: `Bearer ${token}` } });
     assert.equal(artifact.status, 200);
     const bytes = Buffer.from(await artifact.arrayBuffer());
+    const downloadMs = performance.now() - downloadStart;
     assert.equal(crypto.createHash("sha256").update(bytes).digest("hex"), current.resultHash);
     const before = current.receipts.length;
     let retried;
@@ -62,14 +73,16 @@ async function main() {
     assert.equal(retried.receipts.length, before, "Duplicate settlement must not add payments");
     const gpus = (await api("/gpus?mine=true", null, providerToken, "GET")).data;
     assert.equal(gpus.find((gpu) => gpu._id === current.gpuId._id).activeJob, null);
-    const sample = { jobId: job._id, endToEndMs: performance.now() - t0, resultHash: current.resultHash,
-      executionMode: "real_cpu_test", metadata: current.resultMetadata, receipts: current.receipts,
+    await api(`/jobs/${job._id}/fund`, {}, providerToken, "POST", 403);
+    const sample = { jobId: job._id, endToEndMs, downloadMs, receiveMs: current.receiveMs,
+      queueWaitMs: current.queueWaitMs, schedulingMs: current.schedulingMs, resultHash: current.resultHash,
+      executionMode: mode, metadata: current.resultMetadata, receipts: current.receipts,
       paymentWei: current.paymentWei, verification: current.verification,
       queueMs: new Date(current.assignedAt) - new Date(current.fundedAt) };
     samples.push(sample);
     fs.mkdirSync(evidenceDir, { recursive: true });
-    fs.writeFileSync(path.join(evidenceDir, "cpu-integration.json"), JSON.stringify({
-      recordedAt: new Date().toISOString(), environment: "Laptop 1; CPU; local Hardhat; no GPU claim", samples,
+    fs.writeFileSync(path.join(evidenceDir, prefix + "-integration.json"), JSON.stringify({
+      recordedAt: new Date().toISOString(), gitCommit, executionMode: mode, chain: "Local Hardhat 31337", samples,
     }, null, 2));
     console.log(`PASS ${index + 1}/${count}: ${job._id}, genuine result and confirmed ${current.paymentWei} wei payment`);
   }
@@ -79,7 +92,7 @@ async function main() {
   assert.equal(refunded.status, "REFUNDED");
   assert.ok(refunded.receipts.some((receipt) => receipt.action === "RefundIssued"));
   await api(`/jobs/${cancelled._id}/fund`, {}, token, "POST", 409);
-  fs.writeFileSync(path.join(evidenceDir, "cpu-refund.json"), JSON.stringify({ jobId: refunded._id, status: refunded.status, receipts: refunded.receipts }, null, 2));
+  fs.writeFileSync(path.join(evidenceDir, prefix + "-refund.json"), JSON.stringify({ jobId: refunded._id, status: refunded.status, receipts: refunded.receipts }, null, 2));
   console.log("PASS: incompatible GPU requirement stayed queued; cancellation confirmed actual refund; refunded job cannot fund again");
 }
 main().catch((error) => { console.error(error); process.exitCode = 1; });

@@ -16,8 +16,14 @@ async function main() {
     catch (error) { if (!error.message.startsWith("409:")) throw error; }
   }
   const login = await request("/auth/login", users.provider);
+  const mode = (await request("/compute/config", null, login.token, "GET")).data.executionMode;
   const gpus = (await request("/gpus?mine=true", null, login.token, "GET")).data;
   const gpu = gpus[0] || (await request("/gpus", {}, login.token)).data;
+  if (mode === "real_gpu") {
+    console.log(`Demo accounts ready. Open provider slot ${gpu._id} on Laptop 2 to configure its wallet and worker credential.`);
+    return;
+  }
+  if (mode !== "real_cpu_test") throw new Error("Unsupported execution mode");
   const credential = (await request(`/gpus/${gpu._id}/worker-key`, { walletAddress: users.provider.walletAddress }, login.token)).data;
   const file = path.join(runtime, "worker.env");
   fs.writeFileSync(file, fs.readFileSync(file, "utf8").replace(/^WORKER_API_KEY=.*$/m, `WORKER_API_KEY=${credential.workerApiKey}`));

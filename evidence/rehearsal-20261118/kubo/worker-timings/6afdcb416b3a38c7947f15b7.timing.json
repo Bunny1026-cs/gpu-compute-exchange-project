@@ -1,0 +1,9 @@
+{
+  "jobId": "6afdcb416b3a38c7947f15b7",
+  "uploadAndVerifyMs": 4559.0784000000895,
+  "providerReceipt": {
+    "txHash": "0x5f11f8c10fb985889a0a421dab417af5671f963ce15a3b0388b9af179454c66a",
+    "gasUsed": "53844",
+    "confirmationMs": 153.37890000000004
+  }
+}

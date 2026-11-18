@@ -36,7 +36,7 @@ async function main() {
     await pause(1000);
   }
   assert.equal(job.status, "ASSIGNED");
-  await mongoose.connect("mongodb://127.0.0.1:27017/bdgce_real_demo");
+  await mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/bdgce_real_demo");
   try {
     await mongoose.connection.collection("jobs").updateOne({ _id: new mongoose.Types.ObjectId(job._id), status: "ASSIGNED" }, { $set: { leaseExpiresAt: new Date(0) } });
   } finally { await mongoose.disconnect(); }
@@ -51,7 +51,9 @@ async function main() {
   assert.equal(updated.find((item) => item._id === slot._id).activeJob, null);
   await api(`/gpus/${slot._id}`, { availability: false }, provider, "PUT");
   for (const old of slots) await api(`/gpus/${old._id}`, { availability: old.availability }, provider, "PUT");
-  fs.writeFileSync(path.join(root, "evidence/lease-recovery.json"), JSON.stringify({ recordedAt: new Date().toISOString(),
+  const directory = path.resolve(process.env.EVIDENCE_DIR || path.join(root, "evidence"));
+  fs.mkdirSync(directory, { recursive: true });
+  fs.writeFileSync(path.join(directory, "lease-recovery.json"), JSON.stringify({ recordedAt: new Date().toISOString(),
     method: "Dedicated test lease expiration accelerated in MongoDB; actual backend cycle and real chain refund",
     jobId: job._id, status: job.status, reason: job.error, receipts: job.receipts, reservationReleased: true }, null, 2));
   console.log("PASS: periodic cycle refunded expired lease and released reservation");

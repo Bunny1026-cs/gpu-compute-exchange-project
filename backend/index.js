@@ -16,10 +16,7 @@ if (process.env.FINAL_DEMO === "true" && process.env.EXECUTION_MODE !== "real_gp
 if (process.env.EXECUTION_MODE === "real_cpu_test" && (process.env.FINAL_DEMO !== "false" || process.env.NODE_ENV === "production")) throw new Error("CPU testing requires FINAL_DEMO=false and a development environment");
 const connectDB = require("./config/db");
 const app = require("./app");
-const { startSchedulerPolling } = require("./scheduler/scheduler");
 const blockchainService = require("./blockchain/blockchainService");
-const ipfsService       = require("./services/ipfsService");
-const { isDevRoutesEnabled } = require("./config/devRoutes");
 
 const PORT = process.env.PORT || 5000;
 
@@ -27,9 +24,6 @@ const PORT = process.env.PORT || 5000;
 connectDB().then(async () => {
   // Initialize blockchain service (non-blocking — gracefully degrades if unavailable)
   await blockchainService.initialize();
-  // Initialize IPFS service (non-blocking — uses mock mode if IPFS unavailable)
-  // Real artifacts use explicitly labeled local file storage.
-  // Start the scheduler polling loop
   const compute = require("./services/realCompute");
   setInterval(() => compute.cycle().catch((error) => console.error("Compute cycle:", error.message)), 3000);
 });
@@ -37,5 +31,5 @@ connectDB().then(async () => {
 // ── Start ─────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`✅  Backend running on http://localhost:${PORT}`);
-  console.log(`ℹ️   Development routes (/api/dev/*): ${isDevRoutesEnabled() ? "ENABLED" : "disabled"}`);
+  console.log("Development routes disabled for the real worker protocol.");
 });

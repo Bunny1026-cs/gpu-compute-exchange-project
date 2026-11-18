@@ -59,8 +59,8 @@ app.get("/health", (req, res) => {
     executionMode: process.env.EXECUTION_MODE || "legacy",
     timestamp: new Date().toISOString(),
     scheduler: {
-      interval: process.env.SCHEDULER_INTERVAL_MS || "10000",
-      devTrigger: devRoutesEnabled ? "POST /api/dev/scheduler/run" : null,
+      interval: realExecution ? 3000 : process.env.SCHEDULER_INTERVAL_MS || "10000",
+      devTrigger: devRoutesEnabled && !realExecution ? "POST /api/dev/scheduler/run" : null,
     },
     devRoutesEnabled,
     blockchain: {

@@ -31,7 +31,8 @@ Use Hardhat account #3 as provider, #2 as backend demo consumer, #1 as operator 
 private key to Laptop 2's ignored `worker/.env`. It already has local test ETH for
 gas on the default chain. Never use these public development accounts with real ETH.
 
-In provider dashboard, register a worker slot, enter account #3's address, and
+In the provider dashboard, open the slot seeded by `node ops/provision.cjs`
+(or register a slot if none exists), enter account #3's address, and
 create a credential. Save its one-time displayed key locally:
 
 ```powershell
@@ -83,6 +84,39 @@ Open provider dashboard at http://192.168.0.122:5173. If ports fail, check addre
 adapter profile, hotspot client isolation and firewall scope. Remove the rule when
 finished with `Remove-NetFirewallRule -DisplayName 'BDGCE trusted provider'`.
 
+### Switching from the local rehearsal to the two-machine demo
+
+After saving rehearsal evidence, stop its worker, frontend, backend and Hardhat
+terminals. Leave MongoDB running. Apply the private peer firewall rule above.
+Use separate Laptop 1 PowerShell terminals starting at the repository root:
+
+1. Run `cd blockchain` and `npm.cmd run node -- --hostname 0.0.0.0`. A fresh local chain starts.
+2. In a second terminal, run the following in order:
+
+```powershell
+cd blockchain
+npm.cmd run deploy:local
+cd ..
+node ops/setup-local.cjs real_gpu
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ops/start-backend.ps1
+```
+
+3. In a third terminal, confirm `real_gpu`, a connected database and an available
+   blockchain, provision accounts, and start the LAN frontend:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:5000/health | ConvertTo-Json -Depth 6
+node ops/provision.cjs
+cd frontend
+npm.cmd run dev -- --host 0.0.0.0 --port 5173 --strictPort
+```
+
+4. On Laptop 2 run preflight against Laptop 1's current LAN IPv4, open the
+   provider dashboard, configure its issued slot credential and local signing key,
+   and run the worker startup command above. Use separate consumer and provider
+   browser sessions for the demonstration. Preserve the preflight JSON and the
+   worker timing files for the final report.
+
 ## Actual GPU benchmarks, later
 
 Use AC power and stable performance settings. Run:
@@ -97,5 +131,10 @@ memory, environment, Git commit, median/min/max and CSV. Collect at least five f
 GPU end-to-end runs separately. Supported utilization telemetry and clock/driver
 settings should be captured on the physical machine. Never reuse CPU timings as GPU
 results or subtract timestamps between unsynchronized laptops.
+
+PERFORMANCE_RESULTS.md includes the exact five-job collector and reporting commands.
+Copy the matching timing JSON files from the worker results folder to Laptop 1
+for the joined report. The worker takes a host OS lock for its selected CUDA
+device while serving jobs. Stop it before running isolated compute benchmarks.
 
 Worker startup now checks provider test-ETH balance against a 100,000-gas budget at current RPC fees. An unfunded wallet fails before heartbeats; use the default funded local Hardhat provider account or fund it with local test ETH.

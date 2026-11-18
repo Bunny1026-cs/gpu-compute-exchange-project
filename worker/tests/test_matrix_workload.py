@@ -21,8 +21,13 @@ class TestMatrixWorkload(unittest.TestCase):
             result = workload.compute(self.spec, first)
             workload.compute(self.spec, second)
             self.assertEqual(first.read_bytes(), second.read_bytes())
-            self.assertTrue(workload.verify(self.spec, first)["verified"])
+            verification = workload.verify(self.spec, first)
+            self.assertTrue(verification["verified"])
+            self.assertEqual(verification["preview"], np.load(first, allow_pickle=False)[:4, :4].tolist())
             self.assertGreater(result["timingsMs"]["kernel"], 0)
+            self.assertGreaterEqual(result["timingsMs"]["capabilityProbe"], 0)
+            self.assertGreaterEqual(result["timingsMs"]["libraryImport"], 0)
+            self.assertEqual(result["numpyVersion"], np.__version__)
             self.assertIsNone(result["timingsMs"]["hostToDevice"])
             self.assertEqual(np.load(first, allow_pickle=False).shape, (16, 16))
 
@@ -45,6 +50,16 @@ class TestMatrixWorkload(unittest.TestCase):
         with patch.object(torch.cuda, "is_available", return_value=False):
             with self.assertRaisesRegex(RuntimeError, "no CPU fallback"):
                 workload.capabilities("real_gpu")
+
+    def test_two_workers_cannot_hold_the_same_device_lock(self):
+        from runner import device_lock
+        device = {"executionMode": "real_gpu", "deviceUuid": "unit-test-device"}
+        with device_lock(device):
+            with self.assertRaisesRegex(RuntimeError, "Another worker owns"):
+                with device_lock(device):
+                    self.fail("Second worker acquired the same device")
+        with device_lock(device):
+            pass  # Reacquisition after the first worker exits.
 
     def test_unsafe_or_unbounded_spec_rejected(self):
         for change in [{"size": 1000000}, {"size": True}, {"seed": -1}, {"dtype": "object"}, {"executionMode": "simulated"}, {"code": "print(1)"}]:

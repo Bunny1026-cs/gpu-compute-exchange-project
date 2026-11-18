@@ -36,8 +36,9 @@ worker jobs refund where the contract permits. Verified jobs settle rather than 
 **How are chain resets handled?** Hardhat instance ID and contract address are persisted
 with jobs. An old instance cannot be mistaken for funded state on a restarted chain.
 
-**Is IPFS used?** The real path currently uses labeled local file storage. The legacy
-IPFS integration remains available for regression history; no mock CID is claimed.
+**Is IPFS used?** The backend tries the local Kubo API after numerical verification.
+It records a CID only after retrieving identical bytes from Kubo. Each job displays
+its storage outcome. A verified local file supports retrieval when Kubo is unavailable.
 
 **How are timings measured?** Monotonic host clocks; CUDA synchronization separates
 warmup, host-to-device, kernel and device-to-host work. CPU and GPU data are labeled.

@@ -125,6 +125,22 @@ to `bdgce_real_demo`; artifacts are retained in timestamped backup folders. Do n
 reset MongoDB while keeping a funded chain and expecting it to refund automatically.
 Existing jobs from another chain instance fail closed. Preserve evidence before reset.
 
+The reset command checks the running Hardhat instance against the recorded deployment,
+jobs and journal before dropping the dedicated database. It archives results on the
+machine where it runs. On Laptop 2, stop the worker and archive its output separately
+before a new demonstration. Preserve Kubo pins as copies of historical evidence.
+
+```powershell
+if (Test-Path worker/results) {
+  Rename-Item -LiteralPath worker/results -NewName ("results.reset-" + (Get-Date -Format yyyyMMdd-HHmmss))
+}
+```
+
+For the storage walkthrough, start a locally configured Kubo daemon on Laptop 1
+before uploading a job. Use its loopback RPC API (default port 5001). Check the
+CID and storage label after completion. With Kubo stopped, a new job should show
+local file storage and offer the authenticated NumPy download.
+
 ## Verification commands
 
 ```powershell
@@ -142,3 +158,23 @@ node ops/security-integration.cjs
 
 Use an isolated demo database for destructive failure/reset exercises. Test evidence
 and unverified limits are recorded in TEST_RESULTS.md and PERFORMANCE_RESULTS.md.
+
+For a repeatable CPU browser rehearsal, keep the normal worker running, then use
+the commands below from the project root. The script creates two test accounts
+and one temporary provider slot, submits a paid job and a refunded job, checks
+the NumPy download against its digest, and saves the two dashboard screenshots.
+
+```powershell
+npm.cmd install --prefix runtime/browser-tools playwright-core@1.61.1
+node runtime/browser-tools/node_modules/playwright-core/cli.js install chromium
+$env:NODE_PATH = (Resolve-Path runtime/browser-tools/node_modules).Path
+$env:EVIDENCE_DIR = Join-Path $PWD ("evidence/browser-" + (Get-Date -Format yyyyMMdd-HHmmss))
+node ops/browser-rehearsal.cjs
+```
+
+After an application collector run, check the storage outcome with
+`node ops/check-artifact-storage.cjs PATH-TO-INTEGRATION-JSON ipfs_and_local_file`
+or use `local_file` for a batch submitted while Kubo was offline.
+Before restarting Hardhat, run `node ops/check-settlement.cjs PATH-TO-INTEGRATION-JSON`
+to independently check all six receipt senders and events against the MongoDB
+records and live escrow. Set MONGODB_URI if the backend uses a separate rehearsal database.

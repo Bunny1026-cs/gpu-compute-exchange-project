@@ -48,7 +48,31 @@ export default function ConsumerDashboard() {
     finally { setGL(false); }
   }, []);
 
-  useEffect(() => { fetchGPUs(); }, [fetchGPUs]);
+  useEffect(() => {
+    fetchGPUs();
+    const timer = setInterval(fetchGPUs, 5000);
+    return () => clearInterval(timer);
+  }, [fetchGPUs]);
+
+  const activeJobId = jobSuccess && !["COMPLETED", "CANCELLED", "REFUNDED", "FAILED"].includes(jobSuccess.status)
+    ? jobSuccess._id : null;
+  useEffect(() => {
+    if (!activeJobId) return;
+    let active = true;
+    let timer;
+    async function refresh() {
+      try {
+        const response = await jobAPI.get(activeJobId);
+        if (active) setJobSuccess(response.data);
+      } catch (error) {
+        if (active) setJobError(error.message);
+      } finally {
+        if (active) timer = setTimeout(refresh, 3000);
+      }
+    }
+    timer = setTimeout(refresh, 3000);
+    return () => { active = false; clearTimeout(timer); };
+  }, [activeJobId]);
 
   const handleChange = (e) => setJobForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -87,7 +111,7 @@ export default function ConsumerDashboard() {
 
       {jobSuccess && (
         <Alert type="success"
-          message={`✅ Job submitted! ID: ${jobSuccess._id} — Status: ${jobSuccess.status}. Fund the quoted escrow below to enter the queue.`}
+          message={`Job ${jobSuccess._id} · ${jobSuccess.status}`}
           onClose={() => setJobSuccess(null)} />
       )}
 

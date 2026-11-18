@@ -36,10 +36,11 @@ async function main() {
     }
     if (Number(state.status) !== 3) throw new Error("Job is not awaiting provider submission");
     const nonce = Number(BigInt(await provider.send("eth_getTransactionCount", [wallet.address, "pending"])));
+    const start = performance.now();
     const tx = await contract.submitResult(jobId, resultHash, { nonce });
     const receipt = await tx.wait(1, 30000);
     if (receipt.status !== 1) throw new Error("Provider transaction failed");
-    console.log(JSON.stringify({ txHash: tx.hash, gasUsed: receipt.gasUsed.toString() }));
+    console.log(JSON.stringify({ txHash: tx.hash, gasUsed: receipt.gasUsed.toString(), confirmationMs: performance.now() - start }));
   } finally { provider.destroy(); }
 }
 main().catch((error) => { console.error(error.shortMessage || error.message); process.exitCode = 1; });

@@ -62,7 +62,7 @@ export default function ProviderDashboard() {
 
     setSaving(true); setFE("");
     try {
-      const payload = { ...form, gpuMemory: Number(form.gpuMemory), pricePerHour: Number(form.pricePerHour) };
+      const payload = { status: form.status, availability: form.availability };
       // P0-4: status/availability of a BUSY GPU are locked by the backend.
       if (editingBusy) { delete payload.status; delete payload.availability; }
       if (formMode === "new") {
@@ -112,12 +112,12 @@ export default function ProviderDashboard() {
           <div className="stat-label">Registered GPUs</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">{gpus.filter(g => g.availability).length}</div>
+          <div className="stat-value">{gpus.filter(g => g.online && g.availability && g.status === "ACTIVE").length}</div>
           <div className="stat-label">Available</div>
         </div>
         <div className="stat-card">
-          <div className="stat-value">{gpus.filter(g => g.status === "ACTIVE").length}</div>
-          <div className="stat-label">Active</div>
+          <div className="stat-value">{gpus.filter(g => g.online).length}</div>
+          <div className="stat-label">Workers online</div>
         </div>
       </div>
 
@@ -142,7 +142,7 @@ export default function ProviderDashboard() {
       {/* GPU cards */}
       <div className="gpu-grid provider">
         {gpus.map((gpu) => (
-          <div key={gpu._id} className="gpu-card provider-gpu">
+          <div key={gpu._id} data-slot-id={gpu._id} className="gpu-card provider-gpu">
             <div className="gpu-card-header">
               <span className="gpu-model">{gpu.gpuModel}</span>
               <span className={`gpu-badge ${gpu.availability ? "available" : "unavailable"}`}>
@@ -157,7 +157,7 @@ export default function ProviderDashboard() {
             <WorkerSetup gpu={gpu} refresh={fetchMyGPUs} />
             <div className="gpu-price">Local test ETH reservation rate shown to consumers</div>
             <div className="gpu-actions">
-              <button className="btn btn-ghost btn-xs" onClick={() => openEdit(gpu)}>✏️ Edit</button>
+              <button disabled={gpu.status === "BUSY"} className="btn btn-ghost btn-xs" onClick={() => openEdit(gpu)}>✏️ Edit</button>
               <button className="btn btn-ghost btn-xs" onClick={() => toggleAvailability(gpu)}
                 disabled={gpu.status === "BUSY"} title={gpu.status === "BUSY" ? "Locked while a job is assigned or running" : undefined}>
                 {gpu.availability ? "⏸ Unlist" : "▶ List"}
@@ -195,8 +195,8 @@ export default function ProviderDashboard() {
                   <input className="form-input" name="cudaVersion" value={form.cudaVersion} onChange={handleChange} placeholder="12.2" required disabled={saving || formMode !== "new"} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Price / Hour (₹) *</label>
-                  <input className="form-input" type="number" name="pricePerHour" value={form.pricePerHour} onChange={handleChange} placeholder="100" min="0" required disabled={saving || formMode !== "new"} />
+                  <label className="form-label">Pricing</label>
+                  <p>Consumers reserve minutes at the configured demo-wallet rate.</p>
                 </div>
               </div>
               <div className="form-row">

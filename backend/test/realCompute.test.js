@@ -5,6 +5,36 @@ const compute = require("../services/realCompute");
 const Job = require("../models/Job");
 const bc = require("../blockchain/blockchainService");
 const chain = require("../services/realChain");
+const storage = require("../services/artifactStorage");
+
+test("Kubo storage requires a round trip of the exact binary artifact", async (t) => {
+  const bytes = Buffer.from([147, 0, 255, 67]);
+  const cid = "bafy" + "a".repeat(55);
+  const previous = process.env.IPFS_API_URL;
+  process.env.IPFS_API_URL = "http://127.0.0.1:5001";
+  t.after(() => {
+    if (previous === undefined) delete process.env.IPFS_API_URL;
+    else process.env.IPFS_API_URL = previous;
+  });
+  let returned = bytes;
+  t.mock.method(globalThis, "fetch", async (url, request) => {
+    assert.equal(request.method, "POST");
+    if (url.includes("/add?")) {
+      assert.deepEqual(Buffer.from(await request.body.get("file").arrayBuffer()), bytes);
+      return Response.json({ Hash: cid });
+    }
+    assert.ok(url.endsWith("/cat?arg=" + cid));
+    return new Response(returned);
+  });
+  assert.equal(await storage.pinVerified(bytes), cid);
+  assert.deepEqual(await storage.readVerified({ ipfsCid: cid, resultHash: storage.hash(bytes) }), bytes);
+  returned = Buffer.from([1]);
+  assert.equal(await storage.pinVerified(bytes), null);
+  const fs = require("node:fs/promises");
+  t.mock.method(fs, "readFile", async () => bytes);
+  assert.deepEqual(await storage.readVerified({ ipfsCid: cid, artifactPath: "local", resultHash: storage.hash(bytes) }), bytes);
+  await assert.rejects(storage.readVerified({ artifactPath: "local", resultHash: storage.hash(returned) }), /integrity/);
+});
 
 test("real workload allowlist, bounded dimensions and strict GPU requirements", () => {
   const valid = { taskType: "matrix_multiply", input: { size: 32, seed: 1 } };

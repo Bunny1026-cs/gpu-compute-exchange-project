@@ -6,8 +6,29 @@ from pathlib import Path
 import statistics
 import subprocess
 import tempfile
+import threading
 
 from matrix_workload import execute
+from matrix_workload import capabilities
+
+
+def sample_device(uuid, stopped, readings):
+    """Board-wide NVIDIA samples spanning the child lifetime, including startup."""
+    import time
+    origin = time.perf_counter()
+    while not stopped.is_set():
+        try:
+            response = subprocess.run(["nvidia-smi", "-i", uuid,
+                "--query-gpu=driver_version,utilization.gpu", "--format=csv,noheader,nounits"],
+                capture_output=True, text=True, timeout=4, check=True)
+            driver, utilization = response.stdout.strip().split(",")
+            readings.append({"offsetMs": (time.perf_counter() - origin) * 1000,
+                             "driver": driver.strip(), "utilizationPercent":
+                             int(utilization) if utilization.strip().isdigit() else None})
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            readings.append({"unavailable": str(error)})
+            return
+        stopped.wait(0.25)
 
 
 def main():
@@ -22,11 +43,26 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     commit = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, check=False).stdout.strip()
     samples = []
+    device = capabilities(args.mode)
+    uuid = device.get("deviceUuid")
+    if uuid and not uuid.startswith(("GPU-", "MIG-")):
+        uuid = "GPU-" + uuid
     with tempfile.TemporaryDirectory() as directory:
         for size in args.sizes:
             for index in range(args.runs):
                 spec = {"size": size, "seed": 42, "dtype": "float32", "executionMode": args.mode}
-                result = execute(spec, Path(directory) / "result.npy")
+                readings = []
+                stop = threading.Event()
+                monitor = threading.Thread(target=sample_device, args=(uuid, stop, readings)) if uuid else None
+                if monitor:
+                    monitor.start()
+                try:
+                    result = execute(spec, Path(directory) / "result.npy")
+                finally:
+                    stop.set()
+                    if monitor:
+                        monitor.join()
+                result["deviceTelemetry"] = readings
                 result.update(sample=index, gitCommit=commit)
                 samples.append(result)
                 (args.output / "raw.json").write_text(json.dumps(samples, indent=2), encoding="utf-8")
@@ -42,7 +78,18 @@ def main():
     summary = []
     for size in args.sizes:
         values = [sample["timingsMs"]["kernel"] for sample in samples if sample["spec"]["size"] == size]
-        summary.append({"size": size, "count": len(values), "medianMs": statistics.median(values), "minMs": min(values), "maxMs": max(values)})
+        group = [s for s in samples if s["spec"]["size"] == size]
+        metrics = {}
+        columns = {key + "Ms": [s["timingsMs"][key] for s in group] for key in group[0]["timingsMs"]}
+        columns.update({key: [s[key] for s in group] for key in ("peakAllocatedBytes", "peakReservedBytes")})
+        columns["boardUtilizationPercent"] = [r.get("utilizationPercent") for s in group for r in s["deviceTelemetry"]]
+        for name, column in columns.items():
+            measured = [v for v in column if v is not None]
+            if measured:
+                metrics[name] = {"count": len(measured), "min": min(measured),
+                                 "median": statistics.median(measured), "max": max(measured)}
+        summary.append({"size": size, "count": len(values), "medianMs": statistics.median(values),
+                        "minMs": min(values), "maxMs": max(values), "metrics": metrics})
     (args.output / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     try:
         import matplotlib

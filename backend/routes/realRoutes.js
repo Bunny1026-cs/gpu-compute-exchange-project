@@ -1,7 +1,7 @@
 "use strict";
 const express = require("express");
 const crypto = require("crypto");
-const fs = require("fs/promises");
+const storage = require("../services/artifactStorage");
 const { ethers } = require("ethers");
 const Job = require("../models/Job");
 const GPU = require("../models/GPU");
@@ -24,7 +24,7 @@ const owner = async (req, allowProvider = false) => {
 };
 router.get("/compute/config", protect, wrap(async (_req, res) => ok(res, {
   executionMode: compute.mode(), rateWeiPerMinute: process.env.RATE_WEI_PER_MINUTE || "1000000000000000",
-  storage: "local_file", chainReady: bc.isAvailable(), workload: "matrix_multiply", maxMatrixSize: 1024,
+  storage: storage.kuboConfigured() ? "kubo_with_local_fallback" : "local_file", chainReady: bc.isAvailable(), workload: "matrix_multiply", maxMatrixSize: 1024,
 })));
 router.post("/jobs", ...consumer, wrap(async (req, res) => { res.status(201); ok(res, await compute.create(req.user, req.body)); }));
 router.post("/jobs/:id/fund", ...consumer, wrap(async (req, res) => { await owner(req); ok(res, await compute.fund(req.params.id)); }));
@@ -35,13 +35,12 @@ router.post("/jobs/:id/reconcile", protect, wrap(async (req, res) => { const job
 router.get("/jobs/:id/artifact", protect, wrap(async (req, res) => {
   const job = await owner(req, true);
   if (!job.artifactPath) throw compute.fail("Artifact not available", 404);
-  const data = await fs.readFile(job.artifactPath);
-  if (compute.hash(data) !== job.resultHash) throw compute.fail("Artifact integrity failure", 409);
+  const data = await storage.readVerified(job);
   res.set("Content-Type", "application/octet-stream").set("Content-Disposition", `attachment; filename="${job._id}.npy"`).send(data);
 }));
 router.get("/jobs/:id/result", protect, wrap(async (req, res) => {
   const job = await owner(req, true);
-  ok(res, { jobId: job._id, status: job.status, resultHash: job.resultHash, storage: "local_file",
+  ok(res, { jobId: job._id, status: job.status, resultHash: job.resultHash, storage: job.resultHash ? (job.ipfsCid ? "ipfs_and_local_file" : "local_file") : null, ipfsCid: job.ipfsCid,
     result: { metadata: job.resultMetadata, verification: job.verification, receipts: job.receipts } });
 }));
 // Credentials are scoped to one provider-owned slot. Rotation invalidates old credentials.
@@ -50,7 +49,7 @@ router.post("/gpus/:id/worker-key", ...provider, wrap(async (req, res) => {
   const wallet = req.body.walletAddress;
   if (!ethers.isAddress(wallet) || wallet === ethers.ZeroAddress) throw compute.fail("Valid provider development wallet required");
   if ([bc.operatorWallet?.address, bc.demoConsumerWallet?.address].some((address) => address?.toLowerCase() === wallet.toLowerCase())) throw compute.fail("Provider, consumer, and operator wallets must differ");
-  const gpu = await GPU.findOneAndUpdate({ _id: req.params.id, providerId: req.user._id, activeJob: null, status: { $ne: "BUSY" } },
+  const gpu = await GPU.findOneAndUpdate({ _id: req.params.id, providerId: req.user._id, retiredAt: null, activeJob: null, status: { $ne: "BUSY" } },
     { $set: { workerKeyHash: compute.hash(key), providerWallet: ethers.getAddress(wallet), lastHeartbeat: null, capabilities: null } }, { returnDocument: "after" });
   if (!gpu) throw compute.fail("Slot not found or currently busy", 409);
   ok(res, { gpuId: gpu._id, workerApiKey: key, providerWallet: gpu.providerWallet });
@@ -58,7 +57,7 @@ router.post("/gpus/:id/worker-key", ...provider, wrap(async (req, res) => {
 router.get("/gpus", protect, wrap(async (req, res) => {
   const mine = req.query.mine === "true";
   const filter = mine ? { providerId: req.user._id } : { availability: true, status: "ACTIVE", lastHeartbeat: { $gte: compute.fresh() }, executionMode: compute.mode() };
-  const gpus = await GPU.find(filter).lean();
+  const gpus = await GPU.find({ ...filter, retiredAt: null }).lean();
   ok(res, gpus.map((gpu) => ({ ...gpu, online: gpu.lastHeartbeat >= compute.fresh() })));
 }));
 // Manual registration creates an offline slot; only authenticated worker reports supply capabilities.
@@ -72,10 +71,21 @@ router.put("/gpus/:id", ...provider, wrap(async (req, res) => {
   if (typeof req.body.availability === "boolean") updates.availability = req.body.availability;
   if (["ACTIVE", "INACTIVE"].includes(req.body.status)) updates.status = req.body.status;
   if (!Object.keys(updates).length) throw compute.fail("Only listing and active/inactive controls are editable; capabilities come from worker");
-  const gpu = await GPU.findOneAndUpdate({ _id: req.params.id, providerId: req.user._id, activeJob: null, status: { $ne: "BUSY" } },
+  const gpu = await GPU.findOneAndUpdate({ _id: req.params.id, providerId: req.user._id, retiredAt: null, activeJob: null, status: { $ne: "BUSY" } },
     { $set: updates }, { returnDocument: "after" });
   if (!gpu) throw compute.fail("Slot is busy or inaccessible", 409);
   ok(res, gpu);
+}));
+
+// Keep ownership of historical jobs after a provider removes a slot.
+router.delete("/gpus/:id", ...provider, wrap(async (req, res) => {
+  const gpu = await GPU.findOneAndUpdate({ _id: req.params.id, providerId: req.user._id,
+    activeJob: null, status: { $ne: "BUSY" }, retiredAt: null }, {
+    $set: { retiredAt: new Date(), availability: false, status: "INACTIVE", lastHeartbeat: null },
+    $unset: { workerKeyHash: 1, workerSession: 1 },
+  });
+  if (!gpu) throw compute.fail("Slot is busy or inaccessible", 409);
+  ok(res, { gpuId: gpu._id });
 }));
 
 const worker = express.Router();
@@ -97,7 +107,8 @@ worker.post("/heartbeat", wrap(async (req, res) => {
       (cap.executionMode === "real_gpu" && (!cap.computeCapability || cap.gpuMemory <= 0))) throw compute.fail("Worker capabilities do not match required execution mode");
   if (req.body.walletAddress?.toLowerCase() !== req.gpu.providerWallet?.toLowerCase()) throw compute.fail("Worker wallet does not match registered provider wallet", 403);
   const session = req.get("X-Worker-Session");
-  const updated = await GPU.updateOne({ _id: req.gpu._id, $or: [{ workerSession: session },
+  const updated = await GPU.updateOne({ _id: req.gpu._id, retiredAt: null,
+    workerKeyHash: compute.hash(req.get("X-Worker-API-Key")), $or: [{ workerSession: session },
     { workerSession: { $exists: false } }, { lastHeartbeat: null }, { lastHeartbeat: { $lt: compute.fresh() } }] },
   { $set: { workerSession: session, capabilities: cap, executionMode: cap.executionMode,
     gpuModel: cap.gpuModel, gpuMemory: cap.gpuMemory, cudaVersion: cap.cudaVersion, lastHeartbeat: new Date() } });
@@ -134,11 +145,15 @@ worker.post("/jobs/:id/start", wrap(async (req, res) => {
   if (!job && req.job.status !== "RUNNING") throw compute.fail("Job cannot be started", 409);
   ok(res, job || req.job);
 }));
-worker.post("/jobs/:id/result", express.raw({ type: "application/octet-stream", limit: "5mb" }), wrap(async (req, res) => {
+worker.post("/jobs/:id/result", (req, _res, next) => {
+  req.receiveStart = performance.now();
+  next();
+}, express.raw({ type: "application/octet-stream", limit: "5mb" }), wrap(async (req, res) => {
+  const receiveMs = performance.now() - req.receiveStart;
   let metadata;
   try { metadata = JSON.parse(Buffer.from(req.get("X-Result-Metadata") || "", "base64").toString()); }
   catch { throw compute.fail("Invalid result metadata"); }
-  ok(res, await compute.acceptArtifact(req.job._id, req.gpu, req.job.leaseId, req.body, req.get("X-Result-Hash"), metadata));
+  ok(res, await compute.acceptArtifact(req.job._id, req.gpu, req.job.leaseId, req.body, req.get("X-Result-Hash"), metadata, receiveMs));
 }));
 worker.post("/jobs/:id/complete", wrap(async (req, res) => ok(res, await compute.settle(req.job._id))));
 worker.post("/jobs/:id/fail", wrap(async (req, res) => ok(res, await compute.refund(req.job._id, String(req.body.reason || "Worker failure").slice(0, 1000)))));

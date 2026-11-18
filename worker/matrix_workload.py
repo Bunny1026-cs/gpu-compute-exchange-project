@@ -50,6 +50,7 @@ def capabilities(mode):
         torch.testing.assert_close(actual, torch.tensor([[19., 22.], [43., 50.]]), rtol=0, atol=0)
         report.update(gpuModel=prop.name, gpuMemory=prop.total_memory / 1024**3,
                       cudaVersion=torch.version.cuda, deviceIndex=index,
+                      deviceUuid=str(prop.uuid) if getattr(prop, "uuid", None) else None,
                       computeCapability=list(torch.cuda.get_device_capability(index)),
                       compiledArchitectures=torch.cuda.get_arch_list())
     else:
@@ -58,11 +59,13 @@ def capabilities(mode):
 
 
 def compute(spec, output):
+    import_start = time.perf_counter()
     import numpy as np
     import torch
     validate_spec(spec)
     started = time.perf_counter()
     cap = capabilities(spec["executionMode"])
+    probe_ms = (time.perf_counter() - started) * 1000
     torch.set_num_threads(max(1, min(4, os.cpu_count() or 1)))
     torch.backends.cuda.matmul.allow_tf32 = False
     a, b = inputs(spec)
@@ -111,7 +114,9 @@ def compute(spec, output):
             "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
             "artifactBytes": output.stat().st_size, "verified": True,
             "maxAbsoluteError": (result.double() - reference).abs().max().item(),
-            "timingsMs": {"warmup": warmup_ms, "hostToDevice": h2d,
+            "numpyVersion": np.__version__, "cpuThreads": torch.get_num_threads(),
+            "timingsMs": {"libraryImport": (started - import_start) * 1000,
+                          "capabilityProbe": probe_ms, "warmup": warmup_ms, "hostToDevice": h2d,
                           "kernel": kernel, "deviceToHost": d2h,
                           "cpuFloat64Reference": cpu_reference_ms,
                           "cpuFloat32Kernel": cpu_float32_ms,
@@ -146,18 +151,22 @@ def verify(spec, artifact):
     reference = a.double() @ b.double()
     actual = torch.from_numpy(value).double()
     torch.testing.assert_close(actual, reference, rtol=1e-4, atol=1e-4)
-    return {"verified": True, "maxAbsoluteError": (actual - reference).abs().max().item(),
+    return {"verified": True, "preview": value[:4, :4].tolist(),
+            "maxAbsoluteError": (actual - reference).abs().max().item(),
             "rtol": 1e-4, "atol": 1e-4}
 
 
 def execute(spec, output, timeout=120):
     validate_spec(spec)
+    launched = time.perf_counter()
     result = subprocess.run([sys.executable, str(Path(__file__).resolve()), "compute",
                              "--spec", json.dumps(spec), "--artifact", str(output)],
                             capture_output=True, text=True, timeout=timeout, check=False)
     if result.returncode:
         raise RuntimeError(result.stdout or result.stderr)
-    return json.loads(result.stdout)
+    metadata = json.loads(result.stdout)
+    metadata["timingsMs"]["childWall"] = (time.perf_counter() - launched) * 1000
+    return metadata
 
 
 if __name__ == "__main__":

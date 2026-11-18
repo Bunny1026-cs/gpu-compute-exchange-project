@@ -30,6 +30,7 @@ const gpuSchema = new mongoose.Schema(
     workerSession: { type: String, select: false },
     capabilities: mongoose.Schema.Types.Mixed,
     lastHeartbeat: Date,
+    retiredAt: Date,
     activeJob: { type: mongoose.Schema.Types.ObjectId, ref: "Job", default: null },
     providerWallet: String,
     providerId: {

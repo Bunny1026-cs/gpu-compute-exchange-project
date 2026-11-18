@@ -1,0 +1,110 @@
+{
+  "FundsDeposited.confirmationMs": {
+    "count": 5,
+    "minimum": 43.315300000002026,
+    "median": 47.24360000000161,
+    "maximum": 49.09320000000298
+  },
+  "FundsDeposited.gas": {
+    "count": 5,
+    "minimum": 53319,
+    "median": 53319,
+    "maximum": 53319
+  },
+  "JobAssigned.confirmationMs": {
+    "count": 5,
+    "minimum": 32.306799999998475,
+    "median": 48.28149999999732,
+    "maximum": 53.06029999999737
+  },
+  "JobAssigned.gas": {
+    "count": 5,
+    "minimum": 56010,
+    "median": 56010,
+    "maximum": 56010
+  },
+  "JobRegistered.confirmationMs": {
+    "count": 5,
+    "minimum": 47.484399999986636,
+    "median": 48.498099999997066,
+    "maximum": 57.32530000000406
+  },
+  "JobRegistered.gas": {
+    "count": 5,
+    "minimum": 97092,
+    "median": 97092,
+    "maximum": 97092
+  },
+  "PaymentReleased.confirmationMs": {
+    "count": 5,
+    "minimum": 48.26909999999043,
+    "median": 48.8634999999922,
+    "maximum": 58.10359999998764
+  },
+  "PaymentReleased.gas": {
+    "count": 5,
+    "minimum": 54263,
+    "median": 54263,
+    "maximum": 54263
+  },
+  "ResultSubmitted.confirmationMs": {
+    "count": 5,
+    "minimum": 128.42729999999995,
+    "median": 130.87029999999993,
+    "maximum": 153.37890000000004
+  },
+  "ResultSubmitted.gas": {
+    "count": 5,
+    "minimum": 53844,
+    "median": 53844,
+    "maximum": 53844
+  },
+  "ResultVerified.confirmationMs": {
+    "count": 5,
+    "minimum": 47.28809999999066,
+    "median": 49.458599999998114,
+    "maximum": 49.73609999999462
+  },
+  "ResultVerified.gas": {
+    "count": 5,
+    "minimum": 33401,
+    "median": 33401,
+    "maximum": 33401
+  },
+  "downloadMs": {
+    "count": 5,
+    "minimum": 13.120899999994435,
+    "median": 14.61030000000028,
+    "maximum": 16.930099999999584
+  },
+  "endToEndMs": {
+    "count": 5,
+    "minimum": 14008.345599999999,
+    "median": 17018.9531,
+    "maximum": 19420.42989999999
+  },
+  "queueWaitMs": {
+    "count": 5,
+    "minimum": 70.80930000000808,
+    "median": 1727.6463999999978,
+    "maximum": 2446.6609000000026
+  },
+  "receiveMs": {
+    "count": 5,
+    "minimum": 0.1854999999923166,
+    "median": 0.22829999998793937,
+    "maximum": 0.3974999999918509
+  },
+  "schedulingMs": {
+    "count": 5,
+    "minimum": 457.82340000000113,
+    "median": 486.93769999999495,
+    "maximum": 495.5263999999879
+  },
+  "uploadAndVerifyMs": {
+    "count": 5,
+    "minimum": 4448.753799999849,
+    "median": 4690.271899999971,
+    "maximum": 5785.202000000027
+  }
+}

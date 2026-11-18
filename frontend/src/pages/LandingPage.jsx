@@ -16,8 +16,8 @@ export default function LandingPage() {
           Marketplace
         </h1>
         <p className="hero-subtitle">
-          Rent GPU compute on-demand. Submit ML jobs. Track results.
-          Powered by MongoDB Atlas, Express, and React.
+          Rent GPU compute on-demand. Submit matrix jobs. Track results.
+          Powered by MongoDB, Express, and React.
         </p>
         <div className="hero-actions">
           <Link to="/register" className="btn btn-primary btn-lg">Get Started →</Link>
@@ -32,7 +32,7 @@ export default function LandingPage() {
           {[
             { icon: "👤", label: "Consumer" },
             { icon: "⚙️", label: "Backend API" },
-            { icon: "🗄️", label: "MongoDB Atlas" },
+            { icon: "🗄️", label: "MongoDB" },
             { icon: "📋", label: "Job Queue" },
             { icon: "🔀", label: "Scheduler" },
             { icon: "🖥️", label: "GPU Worker" },
@@ -65,7 +65,7 @@ export default function LandingPage() {
               <li>✅ Submit ML compute jobs</li>
               <li>✅ Track job status in real-time</li>
               <li>✅ Pay via blockchain escrow</li>
-              <li>✅ Retrieve results from IPFS</li>
+              <li>✅ Download verified result artifacts</li>
             </ul>
             <Link to="/register" className="btn btn-primary" style={{ marginTop: 20, textDecoration: "none" }}>Start as Consumer</Link>
           </div>
@@ -75,7 +75,7 @@ export default function LandingPage() {
             <ul className="feature-list">
               <li>✅ Register &amp; Login</li>
               <li>✅ Register GPU (model, VRAM, CUDA)</li>
-              <li>✅ Set price &amp; availability</li>
+              <li>✅ Manage worker availability</li>
               <li>✅ Manage your GPU fleet</li>
               <li>✅ Execute assigned jobs</li>
               <li>✅ Receive payment on completion</li>
@@ -91,13 +91,13 @@ export default function LandingPage() {
         <div className="phases-grid">
           {[
             { phase: "Phase 1", label: "Project Scaffold",         status: "done" },
-            { phase: "Phase 2", label: "Database — MongoDB Atlas",  status: "done" },
+            { phase: "Phase 2", label: "Database — MongoDB",  status: "done" },
             { phase: "Phase 3", label: "Auth + Backend APIs",       status: "done" },
             { phase: "Phase 4", label: "React Frontend",            status: "done" },
             { phase: "Phase 5", label: "Smart Contracts",           status: "done" },
-            { phase: "Phase 6", label: "GPU Worker + Docker",       status: "done" },
+            { phase: "Phase 6", label: "Native PyTorch Worker",       status: "done" },
             { phase: "Phase 7", label: "Scheduler + Job Queue",     status: "done" },
-            { phase: "Phase 8", label: "IPFS + Full Pipeline",      status: "done" },
+            { phase: "Phase 8", label: "Local Artifact Storage",      status: "done" },
           ].map((p, i) => (
             <div key={i} className={`phase-card ${p.status}`}>
               <div className="phase-badge">{p.phase}</div>
@@ -109,7 +109,7 @@ export default function LandingPage() {
       </section>
 
       <footer className="footer">
-        <p>GPU Compute Exchange · Decentralized · Trustless · Scalable</p>
+        <p>GPU Compute Exchange · Decentralized · Verified workloads · Scalable</p>
       </footer>
     </div>
   );

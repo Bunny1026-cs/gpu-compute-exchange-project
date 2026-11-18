@@ -12,12 +12,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { gpuAPI, jobAPI } from "../services/api";
+import { gpuAPI, jobAPI, computeAPI } from "../services/api";
+import ComputeJobActions from "../components/ComputeJobActions";
 import Alert from "../components/Alert";
 import Spinner from "../components/Spinner";
 
 export default function ConsumerDashboard() {
   const { user } = useAuth();
+  const [config, setConfig] = useState(null);
+  useEffect(() => { computeAPI.config().then((res) => setConfig(res.data)).catch((error) => setJobError(error.message)); }, []);
 
   // ── GPU marketplace (informational) ───────────────────────────
   const [gpus, setGpus]      = useState([]);
@@ -26,7 +29,7 @@ export default function ConsumerDashboard() {
 
   // ── Job requirements form ─────────────────────────────────────
   const [jobForm, setJobForm] = useState({
-    taskType: "",
+    taskType: "matrix_multiply", size: "128", seed: "42", reservedMinutes: "1",
     requiredGpuMemory: "",
     requiredCudaVersion: "",
     maximumPrice: "",
@@ -51,7 +54,7 @@ export default function ConsumerDashboard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!jobForm.price) return setJobError("Budget (price) is required.");
+
     setSubmitting(true); setJobError(""); setJobSuccess(null);
     try {
       const requirements = {};
@@ -60,14 +63,14 @@ export default function ConsumerDashboard() {
       if (jobForm.maximumPrice) requirements.maximumPrice = Number(jobForm.maximumPrice);
 
       const payload = {
-        taskType: jobForm.taskType || "inference",
-        price: Number(jobForm.price),
+        taskType: "matrix_multiply", input: { size: Number(jobForm.size), seed: Number(jobForm.seed) },
+        reservedMinutes: Number(jobForm.reservedMinutes),
       };
       if (Object.keys(requirements).length > 0) payload.requirements = requirements;
 
       const res = await jobAPI.create(payload);
       setJobSuccess(res.data);
-      setJobForm({ taskType: "", requiredGpuMemory: "", requiredCudaVersion: "", maximumPrice: "", price: "" });
+      setJobForm({ taskType: "matrix_multiply", size: "128", seed: "42", reservedMinutes: "1", requiredGpuMemory: "", requiredCudaVersion: "", maximumPrice: "", price: "" });
     } catch (err) { setJobError(err.message); }
     finally { setSubmitting(false); }
   };
@@ -84,7 +87,7 @@ export default function ConsumerDashboard() {
 
       {jobSuccess && (
         <Alert type="success"
-          message={`✅ Job submitted! ID: ${jobSuccess._id} — Status: ${jobSuccess.status}. The scheduler will assign a GPU automatically.`}
+          message={`✅ Job submitted! ID: ${jobSuccess._id} — Status: ${jobSuccess.status}. Fund the quoted escrow below to enter the queue.`}
           onClose={() => setJobSuccess(null)} />
       )}
 
@@ -96,15 +99,17 @@ export default function ConsumerDashboard() {
             Specify your requirements. The scheduler will automatically select the best compatible GPU.
           </p>
 
-          <Alert type="error" message={jobError} onClose={() => setJobError("")} />
+          {jobSuccess && <ComputeJobActions job={jobSuccess} consumer refresh={async () => setJobSuccess((await jobAPI.get(jobSuccess._id)).data)} />}
+      <Alert type="error" message={jobError} onClose={() => setJobError("")} />
 
           <form onSubmit={handleSubmit} className="job-form">
-            <div className="form-group">
-              <label className="form-label">Task Type</label>
-              <input className="form-input" name="taskType" value={jobForm.taskType}
-                onChange={handleChange} placeholder="e.g. inference, training, fine-tuning" disabled={submitting} />
+            <p>{!config ? "Loading execution configuration..." : config.executionMode === "real_cpu_test" ? "CPU development test (not GPU execution)" : "Real CUDA GPU execution"} - Matrix multiplication</p>
+            <div className="form-row">
+              <div className="form-group"><label className="form-label">Matrix size (2-1024)</label><input className="form-input" name="size" type="number" min="2" max="1024" value={jobForm.size} onChange={handleChange} required /></div>
+              <div className="form-group"><label className="form-label">Seed</label><input className="form-input" name="seed" type="number" min="0" max="2147483647" value={jobForm.seed} onChange={handleChange} required /></div>
             </div>
-
+            <div className="form-group"><label className="form-label">Reserved minutes (1-10)</label><input className="form-input" name="reservedMinutes" type="number" min="1" max="10" value={jobForm.reservedMinutes} onChange={handleChange} required /></div>
+            <p>Rate: {config?.rateWeiPerMinute || "Loading..."} wei/min. Local Hardhat test ETH only.</p>
             <div className="form-notice">
               <span>⚙️</span>
               <strong>GPU Requirements (optional)</strong>
@@ -123,23 +128,7 @@ export default function ConsumerDashboard() {
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Max Price/hr (₹)</label>
-                <input className="form-input" type="number" name="maximumPrice" value={jobForm.maximumPrice}
-                  onChange={handleChange} placeholder="e.g. 100" min="0" disabled={submitting} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Your Budget (₹) <span style={{color:"var(--danger)"}}>*</span></label>
-                <input className="form-input" type="number" name="price" value={jobForm.price}
-                  onChange={handleChange} placeholder="Total budget" min="0" required disabled={submitting} />
-              </div>
-            </div>
-
-            <div className="form-notice">
-              <span>ℹ️</span>
-              <span>Job will be <strong>QUEUED</strong> immediately. The scheduler assigns a GPU and moves it to <strong>ASSIGNED</strong>.</span>
-            </div>
+            <div className="form-notice">Submit to receive the exact quote. Funding is required before scheduling. The workload is fixed at submission.</div>
 
             <button className="btn btn-primary btn-full" type="submit" disabled={submitting}>
               {submitting ? "Submitting…" : "Submit Job →"}
@@ -180,7 +169,7 @@ export default function ConsumerDashboard() {
                   <span>💾 {gpu.gpuMemory} GB</span>
                   <span>⚡ CUDA {gpu.cudaVersion}</span>
                 </div>
-                <div className="gpu-price">₹{gpu.pricePerHour}/hr</div>
+                <div className="gpu-price">{config?.rateWeiPerMinute} wei/min (local test ETH)</div>
               </div>
             ))}
           </div>

@@ -5,10 +5,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { jobAPI } from "../services/api";
+import ComputeJobActions from "../components/ComputeJobActions";
 import Alert from "../components/Alert";
 import Spinner from "../components/Spinner";
 
 const STATUS_COLORS = {
+  AWAITING_FUNDING: "#f59e0b", SETTLEMENT_PENDING: "#8b5cf6", REFUND_PENDING: "#f59e0b", REFUNDED: "#6b7280",
   CREATED: "#6c63ff", QUEUED: "#f59e0b", ASSIGNED: "#3b82f6",
   RUNNING: "#10b981", RESULT_UPLOADED: "#8b5cf6", COMPLETED: "#00d4aa",
   FAILED: "#ef4444", CANCELLED: "#6b7280",
@@ -28,7 +30,7 @@ export default function ProviderJobs() {
     finally { setL(false); }
   }, []);
 
-  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  useEffect(() => { fetchJobs(); const timer = setInterval(fetchJobs, 5000); return () => clearInterval(timer); }, [fetchJobs]);
 
   return (
     <div className="page">
@@ -81,7 +83,7 @@ export default function ProviderJobs() {
             <div className="job-gpu">🖥️ {job.gpuId?.gpuModel || "GPU"} {job.gpuId?.gpuMemory ? `(${job.gpuId.gpuMemory}GB)` : ""}</div>
             <div className="job-meta">
               <span>Consumer: {job.consumerId?.name || "—"}</span>
-              <span>₹{job.price}</span>
+              <span>{job.protocol === "real" ? `${job.escrowAmountWei} wei (test ETH)` : `₹${job.price}`}</span>
               <span>{new Date(job.createdAt).toLocaleDateString()}</span>
             </div>
             {/* Blockchain & Result info */}
@@ -103,6 +105,7 @@ export default function ProviderJobs() {
                 <span>Completed: {new Date(job.completedAt).toLocaleString()}</span>
               </div>
             )}
+            <ComputeJobActions job={job} refresh={fetchJobs} />
             <div className="job-id">ID: {job._id}</div>
           </div>
         ))}

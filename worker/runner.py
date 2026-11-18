@@ -1,165 +1,128 @@
-"""
-runner.py
-GPU Compute Exchange — Job Runner (Main Entry Point)
-
-This is the main process for the GPU worker. It:
-  1. Polls the backend for ASSIGNED jobs
-  2. Picks up one job at a time
-  3. Marks it as RUNNING
-  4. Invokes the executor to simulate GPU computation
-  5. Submits results (hash + data → IPFS via backend)
-  6. Triggers the completion pipeline (verify + pay)
-  7. Loops back to step 1
-
-Usage:
-  cd worker
-  pip install -r requirements.txt
-  python runner.py
-
-Environment:
-  Copy worker/.env.example to worker/.env and configure.
-"""
-
-import sys
+"""Native real-compute provider. No simulated execution or CPU fallback."""
+import base64
+import json
+import os
+from pathlib import Path
+import subprocess
+import threading
 import time
-import traceback
+import uuid
 
-from config import Config
-from executor import execute_job
-from result_handler import ResultHandler
+import requests
+from dotenv import load_dotenv
+from matrix_workload import execute
+
+ROOT = Path(__file__).resolve().parent
+load_dotenv(os.getenv("WORKER_ENV_FILE", str(ROOT / ".env")))
 
 
-def run_worker():
-    """Main worker loop — polls for jobs and processes them."""
+def signer(*args):
+    result = subprocess.run(["node", str(ROOT / "provider_signer.cjs"), *args],
+                            capture_output=True, text=True, timeout=50, check=False)
+    if result.returncode:
+        raise RuntimeError(result.stderr)
+    return json.loads(result.stdout)
 
-    # ── Validate configuration ─────────────────────────────────
-    print()
-    Config.display()
-    try:
-        Config.validate()
-    except ValueError as e:
-        print(f"\n❌ {e}")
-        print("\nCopy worker/.env.example to worker/.env and fill in values.")
-        sys.exit(1)
 
-    # ── Initialize result handler ──────────────────────────────
-    handler = ResultHandler(Config.BACKEND_URL, Config.WORKER_API_KEY)
+class Worker:
+    def __init__(self):
+        self.mode = os.getenv("EXECUTION_MODE", "real_gpu")
+        if self.mode not in ("real_gpu", "real_cpu_test"):
+            raise ValueError("Only real_gpu or explicit real_cpu_test is allowed")
+        if os.getenv("FINAL_DEMO", "true").lower() == "true" and self.mode != "real_gpu":
+            raise ValueError("Final demo requires real_gpu")
+        self.url = os.environ["BACKEND_URL"].rstrip("/")
+        self.key = os.environ["WORKER_API_KEY"]
+        self.session = str(uuid.uuid4())
+        self.wallet = signer("address")["address"]
+        probe = subprocess.run([os.sys.executable, str(ROOT / "matrix_workload.py"),
+                                "capabilities", "--mode", self.mode],
+                               capture_output=True, text=True, timeout=60, check=False)
+        if probe.returncode:
+            raise RuntimeError(probe.stdout or probe.stderr)
+        self.capabilities = json.loads(probe.stdout)
+        self.current = None
+        self.stopped = threading.Event()
+        self.output = ROOT / "results"
+        self.output.mkdir(exist_ok=True)
 
-    print(f"\n🚀 GPU Worker started. Polling every {Config.POLL_INTERVAL_SECONDS}s...\n")
+    def api(self, method, route, job=None, **kwargs):
+        headers = {"X-Worker-API-Key": self.key, "X-Worker-Session": self.session}
+        if job:
+            headers["X-Job-Lease"] = job["leaseId"]
+        headers.update(kwargs.pop("headers", {}))
+        response = requests.request(method, self.url + route, headers=headers, timeout=90, **kwargs)
+        if not response.ok:
+            raise RuntimeError(f"HTTP {response.status_code}: {response.text[:1500]}")
+        return response.json()["data"]
 
-    consecutive_errors = 0
-    max_consecutive_errors = 10
+    def heartbeat(self):
+        body = {"capabilities": self.capabilities, "walletAddress": self.wallet}
+        job = self.current
+        if job:
+            body.update(jobId=job["_id"], leaseId=job["leaseId"])
+        return self.api("POST", "/worker/heartbeat", json=body)
 
-    while True:
+    def heartbeats(self):
+        while not self.stopped.wait(10):
+            try:
+                self.heartbeat()
+            except Exception as error:
+                print("Heartbeat failed:", error, flush=True)
+
+    def process(self, job):
+        self.current = job
+        self.heartbeat()
+        route = "/worker/jobs/" + job["_id"]
         try:
-            # ── 1. Poll for ASSIGNED jobs ──────────────────────
-            jobs = handler.fetch_assigned_jobs()
-
-            if not jobs:
-                # No jobs — wait and poll again
-                time.sleep(Config.POLL_INTERVAL_SECONDS)
-                consecutive_errors = 0
-                continue
-
-            print(f"\n📋 Found {len(jobs)} assigned job(s)")
-
-            # ── 2. Process one job at a time ───────────────────
-            for job in jobs:
-                job_id = job.get("_id", "unknown")
-                print(f"\n{'━' * 55}")
-                print(f"  📌 Processing job: {job_id}")
-                print(f"{'━' * 55}")
-
+            if job["spec"]["executionMode"] != self.mode:
+                raise ValueError("Workload execution mode mismatch")
+            if job["status"] in ("ASSIGNED", "RUNNING"):
+                self.api("POST", route + "/start", job, json={})
+                file = self.output / (job["_id"] + ".npy")
                 try:
-                    process_single_job(handler, job)
-                except Exception as e:
-                    print(f"\n  ❌ Unexpected error processing job {job_id}: {e}")
-                    traceback.print_exc()
-                    try:
-                        handler.fail_job(job_id, f"Worker error: {str(e)}")
-                    except Exception:
-                        print(f"  ⚠️  Could not report failure to backend.")
+                    metadata = execute(job["spec"], file, timeout=min(120, job["reservedMinutes"] * 60))
+                except Exception as error:
+                    self.api("POST", route + "/fail", job, json={"reason": str(error)[:1000]})
+                    return
+                (self.output / (job["_id"] + ".json")).write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+                t0 = time.perf_counter()
+                accepted = self.api("POST", route + "/result", job, data=file.read_bytes(), headers={
+                    "Content-Type": "application/octet-stream",
+                    "X-Result-Hash": metadata["sha256"],
+                    "X-Result-Metadata": base64.b64encode(json.dumps(metadata).encode()).decode(),
+                })
+                print(json.dumps({"jobId": job["_id"], "uploadAndVerifyMs": (time.perf_counter()-t0)*1000}), flush=True)
+                result_hash = accepted["resultHash"]
+            else:
+                result_hash = job["resultHash"]
+            receipt = signer(job["contractAddress"], job["blockchainJobId"], "0x" + result_hash, job["chainInstance"])
+            print(json.dumps({"providerSubmission": receipt, "jobId": job["_id"]}), flush=True)
+            completed = self.api("POST", route + "/complete", job, json={})
+            print(json.dumps({"jobId": job["_id"], "status": completed["status"]}), flush=True)
+        finally:
+            self.current = None
 
-            consecutive_errors = 0
-
-        except KeyboardInterrupt:
-            print("\n\n👋 Worker shutting down (Ctrl+C)...")
-            break
-
-        except Exception as e:
-            consecutive_errors += 1
-            print(f"\n⚠️  Polling error ({consecutive_errors}/{max_consecutive_errors}): {e}")
-
-            if consecutive_errors >= max_consecutive_errors:
-                print(f"\n❌ Too many consecutive errors. Exiting.")
-                sys.exit(1)
-
-            # Exponential backoff on errors
-            wait_time = min(60, Config.POLL_INTERVAL_SECONDS * (2 ** consecutive_errors))
-            print(f"   Retrying in {wait_time}s...")
-            time.sleep(wait_time)
-
-
-def process_single_job(handler: ResultHandler, job: dict):
-    """
-    Process a single assigned job through the full lifecycle:
-      ASSIGNED → RUNNING → RESULT_UPLOADED → COMPLETED
-    """
-    job_id = job["_id"]
-
-    # ── Step 1: Mark as RUNNING ────────────────────────────────
-    print(f"\n  📡 Notifying backend: ASSIGNED → RUNNING")
-    try:
-        handler.start_job(job_id)
-        print(f"  ✅ Job {job_id} is now RUNNING")
-    except Exception as e:
-        print(f"  ❌ Failed to start job: {e}")
-        raise
-
-    # ── Step 2: Execute the job ────────────────────────────────
-    print(f"\n  🖥️  Starting GPU computation...")
-    result = execute_job(
-        job,
-        min_time=Config.MIN_EXECUTION_TIME,
-        max_time=Config.MAX_EXECUTION_TIME,
-    )
-
-    if result["status"] == "error":
-        print(f"\n  ❌ Execution failed: {result['error']}")
-        handler.fail_job(job_id, result["error"])
-        return
-
-    # ── Step 3: Submit result to backend ───────────────────────
-    print(f"\n  📤 Submitting result to backend...")
-    try:
-        submit_resp = handler.submit_result(
-            job_id,
-            result_hash=result["result_hash"],
-            result_data=result["result_data"],
-        )
-        ipfs_cid = submit_resp.get("data", {}).get("ipfsCid")
-        if ipfs_cid:
-            print(f"  📦 Result stored in IPFS: {ipfs_cid}")
-        print(f"  ✅ Result submitted. Job → RESULT_UPLOADED")
-    except Exception as e:
-        print(f"  ❌ Failed to submit result: {e}")
-        handler.fail_job(job_id, f"Result submission failed: {str(e)}")
-        return
-
-    # ── Step 4: Trigger completion (verify + pay) ──────────────
-    print(f"\n  🔐 Triggering verification & payment pipeline...")
-    try:
-        complete_resp = handler.complete_job(job_id)
-        print(f"  ✅ Job {job_id} → COMPLETED")
-        bc_tx = complete_resp.get("data", {}).get("blockchainTxHash")
-        if bc_tx:
-            print(f"  ⛓️  Blockchain tx: {bc_tx}")
-    except Exception as e:
-        print(f"  ⚠️  Completion pipeline error: {e}")
-        print(f"      Job result was submitted successfully. Manual completion may be needed.")
-
-    print(f"\n  🎉 Job {job_id} fully processed!")
+    def run(self):
+        self.heartbeat()
+        thread = threading.Thread(target=self.heartbeats, daemon=True)
+        thread.start()
+        print(json.dumps({"worker": "ready", "mode": self.mode, "capabilities": self.capabilities}), flush=True)
+        try:
+            while not self.stopped.is_set():
+                try:
+                    for job in self.api("GET", "/worker/jobs"):
+                        self.process(job)
+                except Exception as error:
+                    # Preserve accepted artifacts and escrow; poll same lease to retry safely.
+                    print("Worker retry:", error, flush=True)
+                self.stopped.wait(3)
+        finally:
+            self.stopped.set()
 
 
 if __name__ == "__main__":
-    run_worker()
+    try:
+        Worker().run()
+    except KeyboardInterrupt:
+        print("Worker stopped")

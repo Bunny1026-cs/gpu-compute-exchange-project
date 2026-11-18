@@ -32,6 +32,9 @@ app.use(cors());
 app.use(express.json());
 
 // ── API Routes ────────────────────────────────────────────────
+const realExecution = ["real_gpu", "real_cpu_test"].includes(process.env.EXECUTION_MODE);
+if (realExecution) app.use("/api", require("./routes/realRoutes"));
+
 app.use("/api/auth",  authRoutes);
 app.use("/api/gpus",  gpuRoutes);
 app.use("/api/jobs",  jobRoutes);
@@ -39,11 +42,11 @@ app.use("/api/jobs",  jobRoutes);
 // and NODE_ENV !== "production". When not mounted, requests fall through to
 // the 404 handler below.
 const devRoutesEnabled = isDevRoutesEnabled();
-if (devRoutesEnabled) {
+if (devRoutesEnabled && !realExecution) {
   app.use("/api/dev", schedulerRoutes);
   app.use("/api/dev", blockchainRoutes);
 }
-app.use("/api/worker", workerRoutes);       // GPU Worker API (API key auth)
+if (!realExecution) app.use("/api/worker", workerRoutes);       // GPU Worker API (API key auth)
 
 // ── Health Check ──────────────────────────────────────────────
 app.get("/health", (req, res) => {
@@ -52,7 +55,8 @@ app.get("/health", (req, res) => {
     status: "ok",
     service: "gpu-compute-exchange-backend",
     version: "1.0.0",
-    phase: "Complete — Full Pipeline",
+    phase: realExecution ? "Real computation with receipt-confirmed escrow" : "Legacy regression fixture",
+    executionMode: process.env.EXECUTION_MODE || "legacy",
     timestamp: new Date().toISOString(),
     scheduler: {
       interval: process.env.SCHEDULER_INTERVAL_MS || "10000",

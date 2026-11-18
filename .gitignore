@@ -1,5 +1,5 @@
 # ============================================================
-# Root .gitignore — gpu-compute-exchange monorepo
+# Root .gitignore â€” gpu-compute-exchange monorepo
 # ============================================================
 
 # OS
@@ -83,3 +83,12 @@ BDGCE_paper_revised.tex
 coverage/
 .nyc_output/
 .npm-cache/
+
+# Genuine local compute artifacts and private runtime configuration
+backend/results/
+worker/results/
+runtime/
+
+backend/results.reset-*/
+worker/results.reset-*/
+.playwright-mcp/

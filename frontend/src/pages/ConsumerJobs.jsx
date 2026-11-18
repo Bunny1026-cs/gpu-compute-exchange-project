@@ -5,10 +5,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { jobAPI } from "../services/api";
+import ComputeJobActions from "../components/ComputeJobActions";
 import Alert from "../components/Alert";
 import Spinner from "../components/Spinner";
 
 const STATUS_COLORS = {
+  AWAITING_FUNDING: "#f59e0b", SETTLEMENT_PENDING: "#8b5cf6", REFUND_PENDING: "#f59e0b", REFUNDED: "#6b7280",
   CREATED:         "#6c63ff",
   QUEUED:          "#f59e0b",
   ASSIGNED:        "#3b82f6",
@@ -31,11 +33,12 @@ export default function ConsumerJobs() {
     try {
       const res = await jobAPI.list();
       setJobs(res.data || []);
+      setSelected((old) => old ? res.data.find((job) => job._id === old._id) || old : null);
     } catch (err) { setError(err.message); }
     finally { setL(false); }
   }, []);
 
-  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  useEffect(() => { fetchJobs(); const timer = setInterval(fetchJobs, 5000); return () => clearInterval(timer); }, [fetchJobs]);
 
   const viewJob = async (id) => {
     try {
@@ -84,7 +87,7 @@ export default function ConsumerJobs() {
               </div>
               <div className="job-gpu">🖥️ {job.gpuId?.gpuModel || "GPU"}</div>
               <div className="job-meta">
-                <span>₹{job.price}</span>
+                <span>{job.protocol === "real" ? `${job.escrowAmountWei} wei (test ETH)` : `₹${job.price}`}</span>
                 <span>{new Date(job.createdAt).toLocaleDateString()}</span>
               </div>
               <div className="job-id">ID: {job._id}</div>
@@ -106,12 +109,13 @@ export default function ConsumerJobs() {
             </div>
             <div className="detail-row"><span>Task Type</span><span>{selected.taskType || "—"}</span></div>
             <div className="detail-row"><span>GPU</span><span>{selected.gpuId?.gpuModel || "Pending"} {selected.gpuId?.gpuMemory ? `(${selected.gpuId.gpuMemory}GB)` : ""}</span></div>
-            <div className="detail-row"><span>Price</span><span>₹{selected.price}</span></div>
+            {selected.protocol !== "real" && <div className="detail-row"><span>Price</span><span>₹{selected.price}</span></div>}
             <div className="detail-row"><span>Created</span><span>{new Date(selected.createdAt).toLocaleString()}</span></div>
             {selected.completedAt && (
               <div className="detail-row"><span>Completed</span><span>{new Date(selected.completedAt).toLocaleString()}</span></div>
             )}
 
+            <ComputeJobActions job={selected} consumer refresh={fetchJobs} />
             {/* Blockchain info */}
             {selected.blockchainTxHash && (
               <div className="detail-section">
@@ -123,7 +127,7 @@ export default function ConsumerJobs() {
                 </div>
                 {selected.escrowAmountWei && (
                   <div className="detail-row"><span>Escrow</span>
-                    <span>{(Number(selected.escrowAmountWei) / 1e18).toFixed(4)} ETH (demo)</span>
+                    <span>{selected.escrowAmountWei} wei (local test ETH)</span>
                   </div>
                 )}
               </div>
@@ -171,7 +175,7 @@ export default function ConsumerJobs() {
             {selected.status === "RUNNING" && (
               <div className="form-notice" style={{ marginTop: 12 }}>
                 <span>🔄</span>
-                <span>Job is currently executing on the GPU.</span>
+                <span>Job is executing in its explicitly labeled computation mode.</span>
               </div>
             )}
             {selected.status === "COMPLETED" && (

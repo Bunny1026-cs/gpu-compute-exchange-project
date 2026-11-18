@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { gpuAPI } from "../services/api";
+import WorkerSetup from "../components/WorkerSetup";
 import Alert from "../components/Alert";
 import Spinner from "../components/Spinner";
 
@@ -35,9 +36,12 @@ export default function ProviderDashboard() {
     finally { setL(false); }
   }, []);
 
-  useEffect(() => { fetchMyGPUs(); }, [fetchMyGPUs]);
+  useEffect(() => { fetchMyGPUs(); const timer = setInterval(fetchMyGPUs, 5000); return () => clearInterval(timer); }, [fetchMyGPUs]);
 
-  const openNew  = () => { setForm(EMPTY_FORM); setFormMode("new"); setFE(""); };
+  const openNew = async () => {
+    try { await gpuAPI.create({}); setSuccess("Slot registered. Configure a worker credential below, then start the worker."); await fetchMyGPUs(); }
+    catch (error) { setError(error.message); }
+  };
   const openEdit = (gpu) => {
     setForm({ gpuModel: gpu.gpuModel, gpuMemory: gpu.gpuMemory, cudaVersion: gpu.cudaVersion,
               pricePerHour: gpu.pricePerHour, availability: gpu.availability, status: gpu.status });
@@ -55,7 +59,7 @@ export default function ProviderDashboard() {
     e.preventDefault();
     if (!form.gpuModel.trim()) return setFE("GPU model is required.");
     if (!form.cudaVersion.trim()) return setFE("CUDA version is required.");
-    if (!form.pricePerHour) return setFE("Price per hour is required.");
+
     setSaving(true); setFE("");
     try {
       const payload = { ...form, gpuMemory: Number(form.gpuMemory), pricePerHour: Number(form.pricePerHour) };
@@ -150,7 +154,8 @@ export default function ProviderDashboard() {
               <span>⚡ CUDA {gpu.cudaVersion}</span>
               <span>📊 {gpu.status}</span>
             </div>
-            <div className="gpu-price">₹{gpu.pricePerHour}/hr</div>
+            <WorkerSetup gpu={gpu} refresh={fetchMyGPUs} />
+            <div className="gpu-price">Local test ETH reservation rate shown to consumers</div>
             <div className="gpu-actions">
               <button className="btn btn-ghost btn-xs" onClick={() => openEdit(gpu)}>✏️ Edit</button>
               <button className="btn btn-ghost btn-xs" onClick={() => toggleAvailability(gpu)}
@@ -177,21 +182,21 @@ export default function ProviderDashboard() {
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">GPU Model *</label>
-                  <input className="form-input" name="gpuModel" value={form.gpuModel} onChange={handleChange} placeholder="e.g. RTX 4090" required disabled={saving} />
+                  <input className="form-input" name="gpuModel" value={form.gpuModel} onChange={handleChange} placeholder="e.g. RTX 4090" required disabled={saving || formMode !== "new"} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Memory (GB) *</label>
-                  <input className="form-input" type="number" name="gpuMemory" value={form.gpuMemory} onChange={handleChange} placeholder="24" min="1" required disabled={saving} />
+                  <input className="form-input" type="number" name="gpuMemory" value={form.gpuMemory} onChange={handleChange} placeholder="24" min="1" required disabled={saving || formMode !== "new"} />
                 </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
                   <label className="form-label">CUDA Version *</label>
-                  <input className="form-input" name="cudaVersion" value={form.cudaVersion} onChange={handleChange} placeholder="12.2" required disabled={saving} />
+                  <input className="form-input" name="cudaVersion" value={form.cudaVersion} onChange={handleChange} placeholder="12.2" required disabled={saving || formMode !== "new"} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Price / Hour (₹) *</label>
-                  <input className="form-input" type="number" name="pricePerHour" value={form.pricePerHour} onChange={handleChange} placeholder="100" min="0" required disabled={saving} />
+                  <input className="form-input" type="number" name="pricePerHour" value={form.pricePerHour} onChange={handleChange} placeholder="100" min="0" required disabled={saving || formMode !== "new"} />
                 </div>
               </div>
               <div className="form-row">

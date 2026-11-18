@@ -1,0 +1,6 @@
+{
+  "name": "bdgce-provider-signer",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": { "ethers": "^6.17.0" }
+}

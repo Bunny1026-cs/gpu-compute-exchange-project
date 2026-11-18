@@ -6,7 +6,7 @@
  * Base URL is read from VITE_API_URL — never hard-coded.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 
 /**
  * apiFetch
@@ -49,7 +49,9 @@ export const authAPI = {
 };
 
 // ── GPUs ──────────────────────────────────────────────────────
+export const computeAPI = { config: () => apiFetch("/compute/config") };
 export const gpuAPI = {
+  workerKey: (id, walletAddress) => apiFetch(`/gpus/${id}/worker-key`, { method: "POST", body: JSON.stringify({ walletAddress }) }),
   /** Marketplace list — available GPUs. Pass ?mine=true for provider's own GPUs */
   list: (params = "") =>
     apiFetch(`/gpus${params}`),
@@ -69,6 +71,16 @@ export const gpuAPI = {
 
 // ── Jobs ──────────────────────────────────────────────────────
 export const jobAPI = {
+  fund: (id) => apiFetch(`/jobs/${id}/fund`, { method: "POST" }),
+  cancel: (id) => apiFetch(`/jobs/${id}/cancel`, { method: "POST" }),
+  reconcile: (id) => apiFetch(`/jobs/${id}/reconcile`, { method: "POST" }),
+  artifact: async (id) => {
+    const response = await fetch(`${BASE_URL}/jobs/${id}/artifact`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
+    if (!response.ok) throw new Error((await response.json()).message || "Download failed");
+    const url = URL.createObjectURL(await response.blob());
+    const anchor = document.createElement("a"); anchor.href = url; anchor.download = `${id}.npy`; anchor.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
   list: () =>
     apiFetch("/jobs"),
 

@@ -8,8 +8,12 @@
  */
 
 // Load environment variables FIRST — before any other imports
-require("dotenv").config();
+require("dotenv").config({ path: process.env.BACKEND_ENV_FILE || require("path").join(__dirname, ".env") });
 
+process.env.EXECUTION_MODE ||= "real_gpu";
+if (!["real_gpu", "real_cpu_test"].includes(process.env.EXECUTION_MODE)) throw new Error("Only real execution modes are supported");
+if (process.env.FINAL_DEMO === "true" && process.env.EXECUTION_MODE !== "real_gpu") throw new Error("Final demo requires real_gpu");
+if (process.env.EXECUTION_MODE === "real_cpu_test" && (process.env.FINAL_DEMO !== "false" || process.env.NODE_ENV === "production")) throw new Error("CPU testing requires FINAL_DEMO=false and a development environment");
 const connectDB = require("./config/db");
 const app = require("./app");
 const { startSchedulerPolling } = require("./scheduler/scheduler");
@@ -24,9 +28,10 @@ connectDB().then(async () => {
   // Initialize blockchain service (non-blocking — gracefully degrades if unavailable)
   await blockchainService.initialize();
   // Initialize IPFS service (non-blocking — uses mock mode if IPFS unavailable)
-  await ipfsService.initialize();
+  // Real artifacts use explicitly labeled local file storage.
   // Start the scheduler polling loop
-  startSchedulerPolling();
+  const compute = require("./services/realCompute");
+  setInterval(() => compute.cycle().catch((error) => console.error("Compute cycle:", error.message)), 3000);
 });
 
 // ── Start ─────────────────────────────────────────────────────

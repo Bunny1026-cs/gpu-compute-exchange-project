@@ -30,6 +30,12 @@ async function main() {
   await escrow.waitForDeployment();
 
   const address = await escrow.getAddress();
+  const fs = require("fs");
+  const path = require("path");
+  const runtime = path.resolve(__dirname, "../../runtime");
+  fs.mkdirSync(runtime, { recursive: true });
+  const metadata = await hre.network.provider.send("hardhat_metadata");
+  fs.writeFileSync(path.join(runtime, "chain.json"), JSON.stringify({ address, instanceId: metadata.instanceId, deploymentTx: escrow.deploymentTransaction().hash }, null, 2));
   console.log("GPUComputeEscrow deployed");
   console.log(`  network:  ${hre.network.name}`);
   console.log(`  address:  ${address}`);

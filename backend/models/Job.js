@@ -38,6 +38,10 @@ const mongoose = require("mongoose");
 
 // ── Constants ─────────────────────────────────────────────────
 const JOB_STATUS = Object.freeze({
+  AWAITING_FUNDING: "AWAITING_FUNDING",
+  SETTLEMENT_PENDING: "SETTLEMENT_PENDING",
+  REFUND_PENDING: "REFUND_PENDING",
+  REFUNDED: "REFUNDED",
   CREATED:         "CREATED",          // Job record created, not yet in queue
   QUEUED:          "QUEUED",           // Added to the job queue, awaiting scheduler
   ASSIGNED:        "ASSIGNED",         // Scheduler assigned a specific GPU
@@ -51,6 +55,26 @@ const JOB_STATUS = Object.freeze({
 // ── Schema ────────────────────────────────────────────────────
 const jobSchema = new mongoose.Schema(
   {
+    protocol: { type: String, default: "legacy" },
+    spec: { type: mongoose.Schema.Types.Mixed, immutable: true },
+    specHash: { type: String, immutable: true },
+    rateWeiPerMinute: String,
+    reservedMinutes: Number,
+    chainInstance: String,
+    providerWallet: String,
+    leaseId: String,
+    leaseExpiresAt: Date,
+    startedAt: Date,
+    assignedAt: Date,
+    fundedAt: Date,
+    error: String,
+    artifactPath: { type: String, select: false },
+    resultMetadata: mongoose.Schema.Types.Mixed,
+    verification: mongoose.Schema.Types.Mixed,
+    paymentWei: String,
+    receipts: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    lockToken: { type: String, select: false },
+    lockUntil: { type: Date, select: false },
     consumerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

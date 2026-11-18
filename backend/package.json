@@ -1,13 +1,13 @@
 {
   "name": "gpu-compute-exchange-backend",
   "version": "0.1.0",
-  "description": "GPU Compute Exchange — Node.js/Express API backend",
+  "description": "GPU Compute Exchange \u00e2\u20ac\u201d Node.js/Express API backend",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test:scheduler": "node --test test/matcher.test.js test/scheduler.test.js",
-    "test": "node --test test/matcher.test.js test/scheduler.test.js test/gpuController.test.js test/ipfs.test.js test/devRoutes.test.js test/validation.test.js test/workerLifecycle.test.js test/blockchainService.test.js",
+    "test": "node --test test/matcher.test.js test/scheduler.test.js test/gpuController.test.js test/ipfs.test.js test/devRoutes.test.js test/validation.test.js test/workerLifecycle.test.js test/blockchainService.test.js test/realCompute.test.js",
     "check:chain": "node scripts/check-local-chain.js"
   },
   "keywords": [

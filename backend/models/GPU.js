@@ -25,6 +25,13 @@ const GPU_STATUS = Object.freeze({
 // ── Schema ────────────────────────────────────────────────────
 const gpuSchema = new mongoose.Schema(
   {
+    workerKeyHash: { type: String, select: false },
+    executionMode: String,
+    workerSession: { type: String, select: false },
+    capabilities: mongoose.Schema.Types.Mixed,
+    lastHeartbeat: Date,
+    activeJob: { type: mongoose.Schema.Types.ObjectId, ref: "Job", default: null },
+    providerWallet: String,
     providerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -41,7 +48,7 @@ const gpuSchema = new mongoose.Schema(
     gpuMemory: {
       type: Number,
       required: [true, "GPU memory (GB) is required"],
-      min: [1, "GPU memory must be at least 1 GB"],
+      min: [0, "Memory cannot be negative"],
       // stored in GB — e.g. 24
     },
 

@@ -92,3 +92,8 @@ runtime/
 backend/results.reset-*/
 worker/results.reset-*/
 .playwright-mcp/
+
+# Local checkpoints, temporary tools/backups, and finalized paper exports
+/.local-checkpoints/
+/tmp/
+/output/

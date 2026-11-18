@@ -1,0 +1,372 @@
+[
+  {
+    "status": "success",
+    "capabilities": {
+      "executionMode": "real_cpu_test",
+      "python": "3.13.7",
+      "torch": "2.12.1+cpu",
+      "os": "Windows-11-10.0.26200-SP0",
+      "cudaVersion": "0",
+      "gpuModel": "CPU development test (not a GPU)",
+      "gpuMemory": 0,
+      "deviceIndex": null
+    },
+    "spec": {
+      "size": 128,
+      "seed": 42,
+      "dtype": "float32",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "artifactBytes": 65664,
+    "verified": true,
+    "maxAbsoluteError": 7.124181298223675e-06,
+    "timingsMs": {
+      "warmup": 3.5518000076990575,
+      "hostToDevice": null,
+      "kernel": 0.9018999990075827,
+      "deviceToHost": null,
+      "cpuFloat64Reference": 3.1340999994426966,
+      "cpuFloat32Kernel": 0.16340000729542226,
+      "total": 2261.0416999959853
+    },
+    "peakAllocatedBytes": null,
+    "peakReservedBytes": null,
+    "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate",
+    "sample": 0,
+    "gitCommit": "b72e769bf8eb363f02719a68184b59e38be50d21"
+  },
+  {
+    "status": "success",
+    "capabilities": {
+      "executionMode": "real_cpu_test",
+      "python": "3.13.7",
+      "torch": "2.12.1+cpu",
+      "os": "Windows-11-10.0.26200-SP0",
+      "cudaVersion": "0",
+      "gpuModel": "CPU development test (not a GPU)",
+      "gpuMemory": 0,
+      "deviceIndex": null
+    },
+    "spec": {
+      "size": 128,
+      "seed": 42,
+      "dtype": "float32",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "artifactBytes": 65664,
+    "verified": true,
+    "maxAbsoluteError": 7.124181298223675e-06,
+    "timingsMs": {
+      "warmup": 4.003900001407601,
+      "hostToDevice": null,
+      "kernel": 0.44010000419802964,
+      "deviceToHost": null,
+      "cpuFloat64Reference": 19.734200002858415,
+      "cpuFloat32Kernel": 0.07680000271648169,
+      "total": 2380.3773000108777
+    },
+    "peakAllocatedBytes": null,
+    "peakReservedBytes": null,
+    "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate",
+    "sample": 1,
+    "gitCommit": "b72e769bf8eb363f02719a68184b59e38be50d21"
+  },
+  {
+    "status": "success",
+    "capabilities": {
+      "executionMode": "real_cpu_test",
+      "python": "3.13.7",
+      "torch": "2.12.1+cpu",
+      "os": "Windows-11-10.0.26200-SP0",
+      "cudaVersion": "0",
+      "gpuModel": "CPU development test (not a GPU)",
+      "gpuMemory": 0,
+      "deviceIndex": null
+    },
+    "spec": {
+      "size": 128,
+      "seed": 42,
+      "dtype": "float32",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "artifactBytes": 65664,
+    "verified": true,
+    "maxAbsoluteError": 7.124181298223675e-06,
+    "timingsMs": {
+      "warmup": 0.4585999995470047,
+      "hostToDevice": null,
+      "kernel": 0.05729999975301325,
+      "deviceToHost": null,
+      "cpuFloat64Reference": 1.7287999944528565,
+      "cpuFloat32Kernel": 0.06359998951666057,
+      "total": 2095.9841000003507
+    },
+    "peakAllocatedBytes": null,
+    "peakReservedBytes": null,
+    "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate",
+    "sample": 2,
+    "gitCommit": "b72e769bf8eb363f02719a68184b59e38be50d21"
+  },
+  {
+    "status": "success",
+    "capabilities": {
+      "executionMode": "real_cpu_test",
+      "python": "3.13.7",
+      "torch": "2.12.1+cpu",
+      "os": "Windows-11-10.0.26200-SP0",
+      "cudaVersion": "0",
+      "gpuModel": "CPU development test (not a GPU)",
+      "gpuMemory": 0,
+      "deviceIndex": null
+    },
+    "spec": {
+      "size": 128,
+      "seed": 42,
+      "dtype": "float32",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "artifactBytes": 65664,
+    "verified": true,
+    "maxAbsoluteError": 7.124181298223675e-06,
+    "timingsMs": {
+      "warmup": 0.35990000469610095,
+      "hostToDevice": null,
+      "kernel": 0.0391000066883862,
+      "deviceToHost": null,
+      "cpuFloat64Reference": 1.7114999936893582,
+      "cpuFloat32Kernel": 0.03519999154377729,
+      "total": 1404.5228000031784
+    },
+    "peakAllocatedBytes": null,
+    "peakReservedBytes": null,
+    "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate",
+    "sample": 3,
+    "gitCommit": "b72e769bf8eb363f02719a68184b59e38be50d21"
+  },
+  {
+    "status": "success",
+    "capabilities": {
+      "executionMode": "real_cpu_test",
+      "python": "3.13.7",
+      "torch": "2.12.1+cpu",
+      "os": "Windows-11-10.0.26200-SP0",
+      "cudaVersion": "0",
+      "gpuModel": "CPU development test (not a GPU)",
+      "gpuMemory": 0,
+      "deviceIndex": null
+    },
+    "spec": {
+      "size": 128,
+      "seed": 42,
+      "dtype": "float32",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "artifactBytes": 65664,
+    "verified": true,
+    "maxAbsoluteError": 7.124181298223675e-06,
+    "timingsMs": {
+      "warmup": 0.29320000612642616,
+      "hostToDevice": null,
+      "kernel": 0.031000003218650818,
+      "deviceToHost": null,
+      "cpuFloat64Reference": 1.1908000014955178,
+      "cpuFloat32Kernel": 0.03199999628122896,
+      "total": 1185.034199996153
+    },
+    "peakAllocatedBytes": null,
+    "peakReservedBytes": null,
+    "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate",
+    "sample": 4,
+    "gitCommit": "b72e769bf8eb363f02719a68184b59e38be50d21"
+  },
+  {
+    "status": "success",
+    "capabilities": {
+      "executionMode": "real_cpu_test",
+      "python": "3.13.7",
+      "torch": "2.12.1+cpu",
+      "os": "Windows-11-10.0.26200-SP0",
+      "cudaVersion": "0",
+      "gpuModel": "CPU development test (not a GPU)",
+      "gpuMemory": 0,
+      "deviceIndex": null
+    },
+    "spec": {
+      "size": 128,
+      "seed": 42,
+      "dtype": "float32",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "artifactBytes": 65664,
+    "verified": true,
+    "maxAbsoluteError": 7.124181298223675e-06,
+    "timingsMs": {
+      "warmup": 0.31949998810887337,
+      "hostToDevice": null,
+      "kernel": 0.037600009818561375,
+      "deviceToHost": null,
+      "cpuFloat64Reference": 1.373599996441044,
+      "cpuFloat32Kernel": 0.038300000596791506,
+      "total": 1261.8658999999752
+    },
+    "peakAllocatedBytes": null,
+    "peakReservedBytes": null,
+    "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate",
+    "sample": 5,
+    "gitCommit": "b72e769bf8eb363f02719a68184b59e38be50d21"
+  },
+  {
+    "status": "success",
+    "capabilities": {
+      "executionMode": "real_cpu_test",
+      "python": "3.13.7",
+      "torch": "2.12.1+cpu",
+      "os": "Windows-11-10.0.26200-SP0",
+      "cudaVersion": "0",
+      "gpuModel": "CPU development test (not a GPU)",
+      "gpuMemory": 0,
+      "deviceIndex": null
+    },
+    "spec": {
+      "size": 128,
+      "seed": 42,
+      "dtype": "float32",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "artifactBytes": 65664,
+    "verified": true,
+    "maxAbsoluteError": 7.124181298223675e-06,
+    "timingsMs": {
+      "warmup": 0.39239999023266137,
+      "hostToDevice": null,
+      "kernel": 0.04810000245925039,
+      "deviceToHost": null,
+      "cpuFloat64Reference": 1.1857999925268814,
+      "cpuFloat32Kernel": 0.03560000914148986,
+      "total": 1257.8958999947645
+    },
+    "peakAllocatedBytes": null,
+    "peakReservedBytes": null,
+    "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate",
+    "sample": 6,
+    "gitCommit": "b72e769bf8eb363f02719a68184b59e38be50d21"
+  },
+  {
+    "status": "success",
+    "capabilities": {
+      "executionMode": "real_cpu_test",
+      "python": "3.13.7",
+      "torch": "2.12.1+cpu",
+      "os": "Windows-11-10.0.26200-SP0",
+      "cudaVersion": "0",
+      "gpuModel": "CPU development test (not a GPU)",
+      "gpuMemory": 0,
+      "deviceIndex": null
+    },
+    "spec": {
+      "size": 128,
+      "seed": 42,
+      "dtype": "float32",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "artifactBytes": 65664,
+    "verified": true,
+    "maxAbsoluteError": 7.124181298223675e-06,
+    "timingsMs": {
+      "warmup": 0.3406999894650653,
+      "hostToDevice": null,
+      "kernel": 0.0295999925583601,
+      "deviceToHost": null,
+      "cpuFloat64Reference": 1.5313999901991338,
+      "cpuFloat32Kernel": 0.03130000550299883,
+      "total": 1581.8009999929927
+    },
+    "peakAllocatedBytes": null,
+    "peakReservedBytes": null,
+    "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate",
+    "sample": 7,
+    "gitCommit": "b72e769bf8eb363f02719a68184b59e38be50d21"
+  },
+  {
+    "status": "success",
+    "capabilities": {
+      "executionMode": "real_cpu_test",
+      "python": "3.13.7",
+      "torch": "2.12.1+cpu",
+      "os": "Windows-11-10.0.26200-SP0",
+      "cudaVersion": "0",
+      "gpuModel": "CPU development test (not a GPU)",
+      "gpuMemory": 0,
+      "deviceIndex": null
+    },
+    "spec": {
+      "size": 128,
+      "seed": 42,
+      "dtype": "float32",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "artifactBytes": 65664,
+    "verified": true,
+    "maxAbsoluteError": 7.124181298223675e-06,
+    "timingsMs": {
+      "warmup": 0.272599994787015,
+      "hostToDevice": null,
+      "kernel": 0.03190001007169485,
+      "deviceToHost": null,
+      "cpuFloat64Reference": 1.1122999858343974,
+      "cpuFloat32Kernel": 0.03330000618007034,
+      "total": 1118.9726000011433
+    },
+    "peakAllocatedBytes": null,
+    "peakReservedBytes": null,
+    "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate",
+    "sample": 8,
+    "gitCommit": "b72e769bf8eb363f02719a68184b59e38be50d21"
+  },
+  {
+    "status": "success",
+    "capabilities": {
+      "executionMode": "real_cpu_test",
+      "python": "3.13.7",
+      "torch": "2.12.1+cpu",
+      "os": "Windows-11-10.0.26200-SP0",
+      "cudaVersion": "0",
+      "gpuModel": "CPU development test (not a GPU)",
+      "gpuMemory": 0,
+      "deviceIndex": null
+    },
+    "spec": {
+      "size": 128,
+      "seed": 42,
+      "dtype": "float32",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "a5f7033ff3201954c214c0e96909ac06edde70987626f40a13bd5ecfa080ae5c",
+    "artifactBytes": 65664,
+    "verified": true,
+    "maxAbsoluteError": 7.124181298223675e-06,
+    "timingsMs": {
+      "warmup": 4.728800005977973,
+      "hostToDevice": null,
+      "kernel": 1.3873999996576458,
+      "deviceToHost": null,
+      "cpuFloat64Reference": 2.9338000022107735,
+      "cpuFloat32Kernel": 0.563599998713471,
+      "total": 3096.602500008885
+    },
+    "peakAllocatedBytes": null,
+    "peakReservedBytes": null,
+    "timingMethod": "synchronized host monotonic clock; warm execution; transfers separate",
+    "sample": 9,
+    "gitCommit": "b72e769bf8eb363f02719a68184b59e38be50d21"
+  }
+]

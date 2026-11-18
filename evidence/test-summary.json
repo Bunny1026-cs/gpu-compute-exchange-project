@@ -1,0 +1,31 @@
+{
+  "implementationCheckpoint": "905187b",
+  "backendTests": {
+    "passed": 87,
+    "failed": 0
+  },
+  "contractTests": {
+    "passed": 37,
+    "failed": 0
+  },
+  "workerTests": {
+    "passed": 24,
+    "failed": 0
+  },
+  "frontendBuild": "passed",
+  "frontendLint": "passed",
+  "cpuIntegrationRuns": 5,
+  "liveSecurityChecks": 23,
+  "browserConsumer": "login, submit, fund, completed job, receipt and artifact controls verified",
+  "browserProvider": "login, slot registration, credential issuance/hiding, INACTIVE edit verified",
+  "notVerified": [
+    "physical CUDA",
+    "cross-laptop LAN",
+    "GPU OOM hardware",
+    "GPU benchmarks",
+    "exhaustive crash boundary injection",
+    "automatic real-time lease expiry",
+    "destructive full reset rehearsal"
+  ],
+  "liveLeaseRecovery": "passed with accelerated dedicated job lease; real cycle, refund receipt, reservation release"
+}

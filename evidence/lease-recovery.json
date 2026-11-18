@@ -1,0 +1,38 @@
+{
+  "recordedAt": "2026-11-18T02:50:58.058Z",
+  "method": "Dedicated test lease expiration accelerated in MongoDB; actual backend cycle and real chain refund",
+  "jobId": "6afd128b7deed282ffba07c8",
+  "status": "REFUNDED",
+  "reason": "Worker lease expired",
+  "receipts": [
+    {
+      "action": "JobRegistered",
+      "txHash": "0xf2d4698ff83940ce480e6d8d1f5e06566ade418774f36bb8394fe6593bd39dfb",
+      "gasUsed": "97092",
+      "blockNumber": 39,
+      "amountWei": null
+    },
+    {
+      "action": "FundsDeposited",
+      "txHash": "0xf42cfd51dd8dc37e9209b24482e421db53c2783975f42a305bde8ec215e1bec3",
+      "gasUsed": "53319",
+      "blockNumber": 40,
+      "amountWei": "1000000000000000"
+    },
+    {
+      "action": "JobAssigned",
+      "txHash": "0x3e2fb3223b629bd0460eb331b7c2159baffe6d9d1f5cc05d917d6a7c87fc1170",
+      "gasUsed": "56010",
+      "blockNumber": 41,
+      "amountWei": null
+    },
+    {
+      "action": "RefundIssued",
+      "txHash": "0xd6a4d05c4066529b781fc3c542078e469916499a84465448099ce42cf9b6b43e",
+      "gasUsed": "54230",
+      "blockNumber": 42,
+      "amountWei": "1000000000000000"
+    }
+  ],
+  "reservationReleased": true
+}

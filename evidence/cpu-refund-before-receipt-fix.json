@@ -1,0 +1,27 @@
+{
+  "jobId": "6afb5505383961053e702b0d",
+  "status": "REFUNDED",
+  "receipts": [
+    {
+      "action": "JobRegistered",
+      "txHash": "0x5618825be5ce05ab7cc57deddef45e241650e7a9fb996221301f2a87bff9a8ee",
+      "gasUsed": "97092",
+      "blockNumber": 56,
+      "amountWei": null
+    },
+    {
+      "action": "FundsDeposited",
+      "txHash": "0x6e4dbce503e662ffea07a1691160436e47d1d93dfce3571560fc46fabd622505",
+      "gasUsed": "53319",
+      "blockNumber": 57,
+      "amountWei": "1000000000000000"
+    },
+    {
+      "action": "RefundIssued",
+      "txHash": "0x8b4c9b2ac4b671bb2d615e24b72582c28c148ef829e4601eaf6054a2b8018bfe",
+      "gasUsed": "54108",
+      "blockNumber": 58,
+      "amountWei": "1000000000000000"
+    }
+  ]
+}

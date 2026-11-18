@@ -1,0 +1,61 @@
+{
+  "recordedAt": "2026-11-18T02:43:41.614Z",
+  "checks": [
+    "Provider lists slots",
+    "Unlist idle slot for isolated test",
+    "Register test slot",
+    "Issue scoped credential",
+    "Register second slot",
+    "Issue different scoped credential",
+    "Genuine CPU capability heartbeat",
+    "Second live worker session rejected",
+    "Invalid worker key rejected",
+    "Arbitrary workload rejected",
+    "Create unfunded job",
+    "Read own job",
+    "Unfunded job not scheduled",
+    "Concurrent funding has exactly one winner",
+    "Other GPU credential cannot start job",
+    "Wrong lease rejected",
+    "Assigned worker starts job",
+    "No artifact cannot settle or pay",
+    "Wrong artifact hash rejected",
+    "Hash-consistent numerically incorrect artifact rejected",
+    "Rejected result does not complete job",
+    "Worker failure refunds escrow",
+    "Late worker cannot restart refunded job"
+  ],
+  "refund": {
+    "jobId": "6afd10cb7deed282ffba079e",
+    "receipts": [
+      {
+        "action": "JobRegistered",
+        "txHash": "0x70280bd4ecaf98f371c420d1873f33dcb1e378bcf9512046466c0491ec4ea43d",
+        "gasUsed": "97092",
+        "blockNumber": 2,
+        "amountWei": null
+      },
+      {
+        "action": "FundsDeposited",
+        "txHash": "0xa59900b94102fe0ac5ff5cc91631123f21c1f628eccb0af27cd54bc2f6dd9948",
+        "gasUsed": "53319",
+        "blockNumber": 3,
+        "amountWei": "1000000000000000"
+      },
+      {
+        "action": "JobAssigned",
+        "txHash": "0x0a1f433b23f5e08705f538c647dca7bbe23cff29a6fcab96928aaee8aea3c540",
+        "gasUsed": "56010",
+        "blockNumber": 4,
+        "amountWei": null
+      },
+      {
+        "action": "RefundIssued",
+        "txHash": "0x6aa123dfec6bffa35e52483e18ff5df557140de8585a87e3deaa52c87180193f",
+        "gasUsed": "54230",
+        "blockNumber": 5,
+        "amountWei": "1000000000000000"
+      }
+    ]
+  }
+}

@@ -1,0 +1,214 @@
+[
+  {
+    "name": "No online slot saves unfunded draft",
+    "status": "PASS",
+    "details": {
+      "id": "6afecd2959488c00cbe109b5"
+    }
+  },
+  {
+    "name": "Independent browser contexts, paired detected CPU and single-use code",
+    "status": "PASS",
+    "details": {}
+  },
+  {
+    "name": "Pause during active run",
+    "status": "PASS",
+    "details": {
+      "id": "6afecd7a59488c00cbe109b6",
+      "draft": "6afecd8659488c00cbe109ba",
+      "activeFinished": "REVIEW"
+    }
+  },
+  {
+    "name": "Uploaded Python in two browsers, downloaded outputs and accepted payment",
+    "status": "PASS",
+    "details": {
+      "id": "6afecd7a59488c00cbe109b6",
+      "amountWei": "12345",
+      "tx": "0x8a4f44ba6838eeedcf414dae205f667139f0832eb22aa63840a33019870eb148",
+      "provider": "0x6fa04142CB390d3FA261075Fe31F3BF503a00Ef5",
+      "reason": null,
+      "exit": 0
+    }
+  },
+  {
+    "name": "Foreign consumer denied job and named artifacts",
+    "status": "PASS",
+    "details": {
+      "id": "6afecd7a59488c00cbe109b6",
+      "statuses": [
+        403,
+        403
+      ]
+    }
+  },
+  {
+    "name": "Identical live worker upload retry and repeated acceptance/settlement",
+    "status": "PASS",
+    "details": {
+      "id": "6afecd7a59488c00cbe109b6",
+      "amountWei": "12345",
+      "tx": "0x8a4f44ba6838eeedcf414dae205f667139f0832eb22aa63840a33019870eb148",
+      "provider": "0x6fa04142CB390d3FA261075Fe31F3BF503a00Ef5",
+      "reason": null,
+      "exit": 0
+    }
+  },
+  {
+    "name": "Run again creates a fresh quote with original inputs",
+    "status": "PASS",
+    "details": {
+      "id": "6afecd9a59488c00cbe109db",
+      "original": "6afecd7a59488c00cbe109b6",
+      "amount": "12345"
+    }
+  },
+  {
+    "name": "Pasted Python executes and settles",
+    "status": "PASS",
+    "details": {
+      "id": "6afecd9a59488c00cbe109dd",
+      "amountWei": "12345",
+      "tx": "0x076fad43cee50acb30c0bf378226d3a8d6498d5ad17ad4a8503474054cae5256",
+      "provider": "0x6fa04142CB390d3FA261075Fe31F3BF503a00Ef5",
+      "reason": null,
+      "exit": 0
+    }
+  },
+  {
+    "name": "Invalid or oversized source rejected before execution",
+    "status": "PASS",
+    "details": {
+      "api": [
+        400,
+        400
+      ],
+      "browser": "48 KiB validation"
+    }
+  },
+  {
+    "name": "Syntax error refunds and releases slot",
+    "status": "PASS",
+    "details": {
+      "id": "6afecda859488c00cbe109ef",
+      "amountWei": "12345",
+      "tx": "0x1f02547632600f28c871aea0e339dd13eb1c6404f4da9eef10cfcf0c9f598327",
+      "provider": "0x6fa04142CB390d3FA261075Fe31F3BF503a00Ef5",
+      "reason": "Script exited with 1",
+      "exit": 1
+    }
+  },
+  {
+    "name": "Missing output refunds and releases slot",
+    "status": "PASS",
+    "details": {
+      "id": "6afecdb259488c00cbe109fc",
+      "amountWei": "12345",
+      "tx": "0x36858864c0e9fd80be9a21f6e87db936550698f682be4558e3e2f9364b19ce8d",
+      "provider": "0x6fa04142CB390d3FA261075Fe31F3BF503a00Ef5",
+      "reason": "Missing or unreadable expected output: result.txt",
+      "exit": 0
+    }
+  },
+  {
+    "name": "Timeout refunds and releases slot",
+    "status": "PASS",
+    "details": {
+      "id": "6afecdbc59488c00cbe10a0b",
+      "amountWei": "12345",
+      "tx": "0x0b297fa4576b33fec2763a11c2db8737f7b67ffb9ffe70eb71bd5bf212c2be69",
+      "provider": "0x6fa04142CB390d3FA261075Fe31F3BF503a00Ef5",
+      "reason": "Runtime limit exceeded",
+      "exit": 137
+    }
+  },
+  {
+    "name": "Two funded jobs share one slot serially",
+    "status": "PASS",
+    "details": {
+      "jobs": [
+        {
+          "id": "6afecdcb59488c00cbe10a1e",
+          "amountWei": "12345",
+          "tx": "0xd9ad887413efdadb86515e870cca8d1bfa570f849376ed79203826c439c83ea2",
+          "provider": "0x6fa04142CB390d3FA261075Fe31F3BF503a00Ef5",
+          "reason": null,
+          "exit": 0
+        },
+        {
+          "id": "6afecdcb59488c00cbe10a1f",
+          "amountWei": "12345",
+          "tx": "0xa73bc8cf1c536743e8ddad7290badaec501884b4d60918dd5cb62d1265868781",
+          "provider": "0x6fa04142CB390d3FA261075Fe31F3BF503a00Ef5",
+          "reason": null,
+          "exit": 0
+        }
+      ],
+      "observed": [
+        [
+          "QUEUED",
+          "QUEUED"
+        ],
+        [
+          "ASSIGNED",
+          "QUEUED"
+        ],
+        [
+          "RUNNING",
+          "QUEUED"
+        ],
+        [
+          "RESULT_UPLOADED",
+          "QUEUED"
+        ],
+        [
+          "REVIEW",
+          "QUEUED"
+        ],
+        [
+          "REVIEW",
+          "ASSIGNED"
+        ],
+        [
+          "REVIEW",
+          "RUNNING"
+        ],
+        [
+          "REVIEW",
+          "RESULT_UPLOADED"
+        ],
+        [
+          "REVIEW",
+          "REVIEW"
+        ]
+      ]
+    }
+  },
+  {
+    "name": "Agent link disconnect, real lease expiry and stale upload rejection",
+    "status": "PASS",
+    "details": {
+      "id": "6afecdec59488c00cbe10a4b",
+      "amountWei": "12345",
+      "tx": "0xed8720bb1d02b40fc53849ae0092cbc2043d92cccfe71ab8819310deb58bbbdf",
+      "provider": "0x6fa04142CB390d3FA261075Fe31F3BF503a00Ef5",
+      "reason": "Worker lease expired",
+      "link": {
+        "job": "6afecdec59488c00cbe10a4b",
+        "offlineMs": 80021,
+        "staleUpload": 409,
+        "reason": "Stale or unauthorized job lease"
+      }
+    }
+  },
+  {
+    "name": "Expired unused pairing code rejected after genuine expiry",
+    "status": "PASS",
+    "details": {
+      "expires": "2026-11-19T10:24:20.973Z",
+      "testedAt": "2026-11-19T10:24:21.995Z",
+      "http": 403
+    }
+  }
+]

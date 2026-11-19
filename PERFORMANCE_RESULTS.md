@@ -1,5 +1,9 @@
 # Genuine local performance results
 
+## November 19 container CPU pilot
+
+The provider measured 2,322.8 ms from launching the script process through its exit in the successful two-browser pilot. The script deliberately slept for two seconds before writing its two-byte output. This single elapsed-time observation includes Docker exec and polling overhead. Container creation, payments and browser download fall outside that interval. [Execution metadata and exact script hash](evidence/batch-pilot-20261119/batch-pilot.json)
+
 ## November 18 CPU rehearsal
 
 Five fresh 128×128 jobs used Kubo, local MongoDB and Hardhat. The client measured

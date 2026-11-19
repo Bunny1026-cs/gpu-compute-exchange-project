@@ -1,0 +1,6 @@
+{
+  "hostTorch": "2.12.1+cpu",
+  "hostCudaAvailable": false,
+  "hostCudaDeviceCount": 0,
+  "nvidiaSmiAvailable": false
+}

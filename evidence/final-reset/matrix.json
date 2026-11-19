@@ -1,0 +1,92 @@
+{
+  "id": "6afedc41ad97bb55c723749e",
+  "spec": {
+    "size": 64,
+    "seed": 42,
+    "dtype": "float32",
+    "executionMode": "real_cpu_test"
+  },
+  "verification": {
+    "verified": true,
+    "preview": [
+      [
+        1.3760802745819092,
+        -0.5325015783309937,
+        -2.109886884689331,
+        -0.9393145442008972
+      ],
+      [
+        1.033506989479065,
+        4.228654384613037,
+        4.28239631652832,
+        -4.508656978607178
+      ],
+      [
+        2.3611655235290527,
+        -1.64357328414917,
+        1.272160530090332,
+        -1.6989609003067017
+      ],
+      [
+        -6.442986011505127,
+        2.2922635078430176,
+        4.361945629119873,
+        0.9405853152275085
+      ]
+    ],
+    "maxAbsoluteError": 0.0000033711581046702577,
+    "rtol": 0.0001,
+    "atol": 0.0001
+  },
+  "paymentWei": "1000000000000000",
+  "artifactSHA256": "a832a3d577c2d0f4ade0cf07507301d49610dc200460ab85f6d7e1b44bd45703",
+  "receipts": [
+    {
+      "action": "JobRegistered",
+      "txHash": "0x93790134c770b25b9cb1ad6a1c9f2ee15841726d9cbced8bdb9ab839ffa84b8a",
+      "gasUsed": "97092",
+      "blockNumber": 24,
+      "amountWei": null,
+      "confirmationMs": 46.976699999999255
+    },
+    {
+      "action": "FundsDeposited",
+      "txHash": "0x9e2e26b7b9b2b69bd41e8080a5ef33a9514d451972a44c808744197574f5c548",
+      "gasUsed": "53319",
+      "blockNumber": 25,
+      "amountWei": "1000000000000000",
+      "confirmationMs": 47.79100000000108
+    },
+    {
+      "action": "JobAssigned",
+      "txHash": "0xbb337696ad7fadb683ca44287be1aea310dc41e1867c2dba6e4b617a5fab863c",
+      "gasUsed": "56010",
+      "blockNumber": 26,
+      "amountWei": null,
+      "confirmationMs": 47.26650000000154
+    },
+    {
+      "action": "ResultSubmitted",
+      "txHash": "0xf7342c7fc191dfd2f3de442b606778e3b79bbd10cd9517e1c0e3695e0b0da27f",
+      "gasUsed": "53844",
+      "blockNumber": 27,
+      "amountWei": null
+    },
+    {
+      "action": "ResultVerified",
+      "txHash": "0xa7abfa1085e1716374b4632e28ca3b552fc7f71b4b03b377c90cbc96abfc3143",
+      "gasUsed": "33401",
+      "blockNumber": 28,
+      "amountWei": null,
+      "confirmationMs": 49.06469999999899
+    },
+    {
+      "action": "PaymentReleased",
+      "txHash": "0xd035558ba8f6d6c2231699bd7288deac3053762dbcfb37602877822bfe4461b6",
+      "gasUsed": "54263",
+      "blockNumber": 29,
+      "amountWei": "1000000000000000",
+      "confirmationMs": 48.1262999999999
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 # Blockchain-Enabled Distributed GPU Compute Exchange
 
 BDGCE is a local engineering demonstration of a React/Express/MongoDB marketplace,
-Python/PyTorch matrix worker, greedy scheduler and Solidity Hardhat escrow.
+a native PyTorch matrix worker, paired Docker batch agents, a device scheduler and Solidity Hardhat escrow.
 
 Start with [FINAL_DEMO_GUIDE.md](FINAL_DEMO_GUIDE.md) for installation, exact startup
 commands, generated demo accounts, browser workflow, recovery and safe reset.
@@ -38,7 +38,9 @@ Jobs use AWAITING_FUNDING, QUEUED, ASSIGNED, RUNNING, RESULT_UPLOADED,
 SETTLEMENT_PENDING, COMPLETED, REFUND_PENDING, REFUNDED, FAILED and CANCELLED states.
 CPU inputs are seeded PCG64 float32 arrays; outputs are safe NumPy arrays without
 pickle. SHA-256 is over exact bytes. The backend regenerates a float64 CPU reference
-and checks rtol/atol 1e-4. Only bounded matrix multiplication is allowed.
+and checks rtol/atol 1e-4. Matrix jobs settle automatically after independent verification.
+
+For trusted Python batch jobs, providers pair a local agent and enable individual devices. Consumers upload or paste a script, declare outputs and receive a fixed wei quote for a compatible online slot. The agent proves readiness before assignment and executes the script in a fresh pinned container. The consumer can download and accept the checked files or open a dispute. The operator can resolve disputed and expired reviews. See the self-service batch section in the demo guide.
 
 Provider credentials bind one account and slot; detected capabilities and heartbeats
 control scheduling. Conditional reservations, worker sessions and job leases reject

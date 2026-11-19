@@ -38,8 +38,7 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <span className="logo-icon" style={{ fontSize: "2rem" }}>⚡</span>
-          <h1 className="auth-title">Welcome Back</h1>
+          <h1 className="auth-title">Welcome back</h1>
           <p className="auth-subtitle">Sign in to GPU Compute Exchange</p>
         </div>
 
@@ -47,13 +46,13 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label className="form-label">Email</label>
-            <input className="form-input" type="email" name="email" value={form.email} onChange={handleChange} placeholder="you@example.com" required autoComplete="email" disabled={loading} />
+            <label className="form-label" htmlFor="email">Email</label>
+            <input className="form-input" type="email" id="email" name="email" value={form.email} onChange={handleChange} placeholder="you@example.com" required autoComplete="email" disabled={loading} />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
-            <input className="form-input" type="password" name="password" value={form.password} onChange={handleChange} placeholder="Your password" required autoComplete="current-password" disabled={loading} />
+            <label className="form-label" htmlFor="password">Password</label>
+            <input className="form-input" type="password" id="password" name="password" value={form.password} onChange={handleChange} placeholder="Your password" required autoComplete="current-password" disabled={loading} />
           </div>
 
           <button className="btn btn-primary btn-full" type="submit" disabled={loading}>

@@ -1,0 +1,131 @@
+{
+  "job": "6afe8f549f2b38af069a6b71",
+  "timeoutJob": "6afe8f689f2b38af069a6b80",
+  "disputeJob": "6afe8f789f2b38af069a6b87",
+  "paid": "12345678901234567",
+  "receipts": [
+    {
+      "action": "JobRegistered",
+      "txHash": "0x361413b9487b229b0e380173617b9b07378bf21996bb7f234f5f81e70b8ce8cd",
+      "gasUsed": "97092",
+      "blockNumber": 43,
+      "amountWei": null,
+      "confirmationMs": 47.542999999997846
+    },
+    {
+      "action": "FundsDeposited",
+      "txHash": "0x4ed83a87279c98f2d840322b8b3737b74291283688f9436d97bc7ac6471be353",
+      "gasUsed": "53319",
+      "blockNumber": 44,
+      "amountWei": "12345678901234567",
+      "confirmationMs": 33.04309999999532
+    },
+    {
+      "action": "JobAssigned",
+      "txHash": "0xade57df13ed2d94b6f4b661f42b5be23eed3ab0d6b34423d28aa73b16a72d79c",
+      "gasUsed": "56010",
+      "blockNumber": 45,
+      "amountWei": null,
+      "confirmationMs": 49.07920000000013
+    },
+    {
+      "action": "ResultSubmitted",
+      "txHash": "0xd78e64c9a99016b241ed06d0dd6992eb7ca2764630f1e0704d793939dfe9bf41",
+      "gasUsed": "53844",
+      "blockNumber": 46,
+      "amountWei": null
+    },
+    {
+      "action": "ResultVerified",
+      "txHash": "0x345348f4addd107049dd76467f5819992f6e8e942a28ec1ba303c490276bebbb",
+      "gasUsed": "33401",
+      "blockNumber": 47,
+      "amountWei": null,
+      "confirmationMs": 48.193599999998696
+    },
+    {
+      "action": "PaymentReleased",
+      "txHash": "0xb592c802dc32cc7db47f814cae1dd394a279b840929c32b973c30851facb26a3",
+      "gasUsed": "54263",
+      "blockNumber": 48,
+      "amountWei": "12345678901234567",
+      "confirmationMs": 48.34189999999944
+    }
+  ],
+  "metadata": {
+    "spec": {
+      "profile": "python-cpu",
+      "image": "python@sha256:fd95fa221297a88e1cf49c55ec1828edd7c5a428187e67b5d1805692d11588db",
+      "args": [
+        "21"
+      ],
+      "seconds": 25,
+      "outputs": [
+        "result.txt"
+      ],
+      "minVramGiB": 0,
+      "scriptHash": "191554f2c86f6c6146a4b199e65a7b6c706acd0e8dd264231e46310bbe1c112c",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "6a92cb8843761f2a19a3ea9473c884185572723331809972c96fb8602e707921",
+    "artifactBytes": 113,
+    "exitCode": 0,
+    "elapsedMs": 2322.844800000894,
+    "device": "cpu",
+    "runtime": "3.12.10",
+    "capabilities": {
+      "deviceKey": "cpu",
+      "executionMode": "real_cpu_test",
+      "gpuMemory": 0,
+      "gpuModel": "CPU development slot",
+      "driver": null,
+      "testedImage": "python@sha256:fd95fa221297a88e1cf49c55ec1828edd7c5a428187e67b5d1805692d11588db",
+      "runtime": "3.12.10",
+      "cudaVersion": "0",
+      "computeCapability": null
+    }
+  },
+  "files": [
+    {
+      "name": "result.txt",
+      "sha256": "73475cb40a568e8da8a045ced110137e159f890ac4da883b6b17dc651b3a8049",
+      "bytes": 2
+    }
+  ],
+  "refund": [
+    {
+      "action": "JobRegistered",
+      "txHash": "0xf8c576dd45a4428f3a30215be80697e38407ecf3921031b646e43151028e2391",
+      "gasUsed": "97092",
+      "blockNumber": 49,
+      "amountWei": null,
+      "confirmationMs": 33.073099999994156
+    },
+    {
+      "action": "FundsDeposited",
+      "txHash": "0x5c388c45ad312ca07727b5ef282d420d69995efd2e074508886e8d28d44a3516",
+      "gasUsed": "53319",
+      "blockNumber": 50,
+      "amountWei": "12345678901234567",
+      "confirmationMs": 47.5057000000088
+    },
+    {
+      "action": "JobAssigned",
+      "txHash": "0x29c1066230760841d95555155e21106b3b7ca9d47adff4a025a00f0b677269de",
+      "gasUsed": "56010",
+      "blockNumber": 51,
+      "amountWei": null,
+      "confirmationMs": 37.33979999998701
+    },
+    {
+      "action": "RefundIssued",
+      "txHash": "0xb27e6955b4f98b003177572f0a1cce030a3ec4dbbc76da3decb61f699b56c043",
+      "gasUsed": "54230",
+      "blockNumber": 52,
+      "amountWei": "12345678901234567",
+      "confirmationMs": 47.904999999998836
+    }
+  ],
+  "timeout": "Runtime limit exceeded",
+  "deviceReleased": true
+}

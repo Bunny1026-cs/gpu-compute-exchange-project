@@ -115,8 +115,9 @@ app.use((req, res) => {
 // Must have 4 parameters for Express to treat it as an error handler.
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
-  console.error("Unhandled error:", err.message);
   const statusCode = err.statusCode || 500;
+  if (statusCode >= 500) console.error("Server error:", err.message);
+  else console.warn("Request rejected", req.method, req.path, statusCode);
   res.status(statusCode).json({
     success: false,
     message: process.env.NODE_ENV === "production" ? "Internal server error." : err.message,

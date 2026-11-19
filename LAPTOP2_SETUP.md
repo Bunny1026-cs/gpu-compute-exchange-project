@@ -1,5 +1,7 @@
 # Laptop 2: CUDA provider
 
+For the paired batch agent, follow the LAN and wallet configuration below, then use the **Laptop 2 batch CUDA** commands in [the demo guide](FINAL_DEMO_GUIDE.md#laptop-2-batch-cuda). Those commands test each GPU inside the pinned Docker runtime and start the agent that serves uploaded Python jobs. The native worker commands below serve the matrix workload.
+
 Physical GPU execution and cross-laptop networking have not been tested here.
 Laptop 1 has Intel UHD 620 and cannot replace a missing NVIDIA CUDA provider.
 

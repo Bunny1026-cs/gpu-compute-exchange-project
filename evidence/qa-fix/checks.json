@@ -1,0 +1,58 @@
+[
+  {
+    "name": "No online slot saves unfunded draft",
+    "status": "PASS",
+    "details": {
+      "id": "6afed8af09b856f3787d40ba"
+    }
+  },
+  {
+    "name": "Independent browser contexts, paired detected CPU and single-use code",
+    "status": "PASS",
+    "details": {}
+  },
+  {
+    "name": "Pause during active run",
+    "status": "PASS",
+    "details": {
+      "id": "6afed8b409b856f3787d40bb",
+      "draft": "6afed8c009b856f3787d40bf",
+      "activeFinished": "REVIEW"
+    }
+  },
+  {
+    "name": "Uploaded Python in two browsers, downloaded outputs and accepted payment",
+    "status": "PASS",
+    "details": {
+      "id": "6afed8b409b856f3787d40bb",
+      "amountWei": "12345",
+      "tx": "0xe9b5f40bdb47831b4191c6989983ffb0dba8a092ec19060815f617bfadbb5a6e",
+      "provider": "0x0d599752b138F22c6299207d70262377dB4ABdE7",
+      "reason": null,
+      "exit": 0
+    }
+  },
+  {
+    "name": "Foreign consumer denied job and named artifacts",
+    "status": "PASS",
+    "details": {
+      "id": "6afed8b409b856f3787d40bb",
+      "statuses": [
+        403,
+        403
+      ]
+    }
+  },
+  {
+    "name": "Identical live worker upload retry and repeated acceptance/settlement",
+    "status": "PASS",
+    "details": {
+      "id": "6afed8b409b856f3787d40bb",
+      "amountWei": "12345",
+      "tx": "0xe9b5f40bdb47831b4191c6989983ffb0dba8a092ec19060815f617bfadbb5a6e",
+      "provider": "0x0d599752b138F22c6299207d70262377dB4ABdE7",
+      "reason": null,
+      "exit": 0
+    }
+  }
+]

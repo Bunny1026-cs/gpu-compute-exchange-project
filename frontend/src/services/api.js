@@ -50,6 +50,23 @@ export const authAPI = {
 
 // ── GPUs ──────────────────────────────────────────────────────
 export const computeAPI = { config: () => apiFetch("/compute/config") };
+export const batchAPI = {
+  pairCode: () => apiFetch("/agents/code", { method: "POST" }),
+  share: (id, rate, enabled) => apiFetch("/agents/slots/" + id, {method:"PUT",body:JSON.stringify({rate,enabled})}),
+  create: data => apiFetch("/batch/jobs",{method:"POST",body:JSON.stringify(data)}),
+  quote: id => apiFetch("/jobs/" + id + "/quote",{method:"POST"}),
+  repeat: id => apiFetch("/jobs/" + id + "/repeat",{method:"POST"}),
+  review: (id,decision,reason) => apiFetch("/jobs/" + id + "/review",{method:"POST",body:JSON.stringify({decision,reason})}),
+  download: async (id,name) => {
+    const response = await fetch(BASE_URL + "/jobs/" + id + "/outputs/" + encodeURIComponent(name), {
+      headers:{Authorization:"Bearer " + localStorage.getItem("token")}
+    });
+    if (!response.ok) throw new Error("Output download failed");
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a"); link.href=url; link.download=name; link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+};
 export const gpuAPI = {
   workerKey: (id, walletAddress) => apiFetch(`/gpus/${id}/worker-key`, { method: "POST", body: JSON.stringify({ walletAddress }) }),
   /** Marketplace list — available GPUs. Pass ?mine=true for provider's own GPUs */

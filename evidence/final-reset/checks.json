@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Fresh browser registration, logout and login for both roles",
+    "status": "PASS",
+    "details": {}
+  },
+  {
+    "name": "No online slot saves unfunded draft",
+    "status": "PASS",
+    "details": {
+      "id": "6afedbd952aa9b9ff0dfa482"
+    }
+  },
+  {
+    "name": "Independent browser contexts, paired detected CPU and single-use code",
+    "status": "PASS",
+    "details": {}
+  },
+  {
+    "name": "Pause during active run",
+    "status": "PASS",
+    "details": {
+      "id": "6afedbdf52aa9b9ff0dfa483",
+      "draft": "6afedbe952aa9b9ff0dfa487",
+      "activeFinished": "REVIEW"
+    }
+  },
+  {
+    "name": "Uploaded Python in two browsers, downloaded outputs and accepted payment",
+    "status": "PASS",
+    "details": {
+      "id": "6afedbdf52aa9b9ff0dfa483",
+      "amountWei": "12345",
+      "tx": "0x75f1959f27c3ef1a40a9557a556a33300f3e35f62e3b7445f8aab89e7fe1d982",
+      "provider": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+      "reason": null,
+      "exit": 0
+    }
+  },
+  {
+    "name": "Timeout and full refund",
+    "status": "PASS",
+    "details": {
+      "id": "6afedbfc52aa9b9ff0dfa49a",
+      "amountWei": "12345",
+      "tx": "0x408fdd6f9bd240a879ac9f517b0dca069a4b1f8acf7f04037c5b9ed3ba541573",
+      "provider": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+      "reason": "Runtime limit exceeded",
+      "exit": 137
+    }
+  }
+]

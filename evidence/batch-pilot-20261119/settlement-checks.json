@@ -1,0 +1,49 @@
+[
+  {
+    "jobId": "6afe8f549f2b38af069a6b71",
+    "blockchainJobId": "0x00000000000000000000000000000000000000006afe8f549f2b38af069a6b71",
+    "provider": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    "consumer": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+    "operator": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "resultHash": "6a92cb8843761f2a19a3ea9473c884185572723331809972c96fb8602e707921",
+    "paymentWei": "12345678901234567",
+    "verifiedReceiptEvents": [
+      "JobRegistered",
+      "FundsDeposited",
+      "JobAssigned",
+      "ResultSubmitted",
+      "ResultVerified",
+      "PaymentReleased"
+    ],
+    "reservationReleased": true
+  },
+  {
+    "jobId": "6afe8f689f2b38af069a6b80",
+    "refundWei": "12345678901234567",
+    "refundReceipt": "0xb27e6955b4f98b003177572f0a1cce030a3ec4dbbc76da3decb61f699b56c043",
+    "reviewHistory": [],
+    "reservationReleased": true
+  },
+  {
+    "jobId": "6afe8f789f2b38af069a6b87",
+    "refundWei": "12345678901234567",
+    "refundReceipt": "0xe90880e0b217890974eb27921863dfd263c2cba478aaea23d6fbd68956ab34f0",
+    "reviewHistory": [
+      {
+        "decision": "issue",
+        "reason": "Pilot operator-resolution exercise",
+        "actor": "consumer",
+        "at": "2026-11-19T05:56:24.454Z",
+        "_id": "6afe8f889f2b38af069a6b8b"
+      },
+      {
+        "decision": "refund",
+        "reason": "Rehearsal dispute resolved",
+        "actor": "operator",
+        "at": "2026-11-19T05:56:43.013Z",
+        "_id": "6afe8f9b35687647adf00e98"
+      }
+    ],
+    "reservationReleased": true
+  }
+]

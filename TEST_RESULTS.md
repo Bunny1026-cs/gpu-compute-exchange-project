@@ -1,5 +1,22 @@
 # Actual test results
 
+## November 19 self-service batch pilot
+
+Laptop 1 ran MongoDB, a dedicated local Hardhat chain, Express, Vite, Docker Desktop and the paired Python agent. Two isolated Chromium contexts signed into the provider and consumer dashboards. All amounts below are local test ETH.
+
+| Executed check | Observed outcome |
+| --- | --- |
+| Trusted Python upload and review | A fresh non-root container ran Python 3.12.10, printed a log and returned `result.txt` containing `42`. A browser downloaded the file. Escrow stayed funded through review. |
+| Acceptance and repeated settlement | Acceptance released 12,345,678,901,234,567 wei. A second acceptance produced one total payment event. The three wallet identities, transaction senders, six receipts, result hash and MongoDB state matched the live contract. |
+| Timeout and release | A 45-second sleep with a two-second limit ended with a runtime-limit failure. MongoDB and Hardhat recorded a single full refund. The device became available again. |
+| Repeat, draft and dispute | Draining the only compatible slot caused a repeat to save as a draft. Re-enabling the device produced a fresh quote. The repeated script executed, the consumer reported an issue and the operator refunded it. Repeating the resolution produced one total refund. |
+| Scheduler regression with two synthetic devices | Reusing a pairing code failed. Negative readiness moved a reservation to the second device before assignment. The old lease could neither download the source nor upload a result. Two jobs held distinct slots and a third stayed in draft. |
+| Original matrix workflow | A genuine 64×64 CPU job passed independent numerical verification, artifact download and automatic payment. An incompatible matrix job was refunded after cancellation. |
+| Regression suites | 95 backend, 37 Hardhat and 27 worker tests passed. The frontend production build and Oxlint both succeeded. Review expiry was exercised with a test clock value. |
+| Hardware inventory | The runtime discovery command found the tested Python CPU slot and zero NVIDIA devices. CUDA training, physical passthrough, LAN and GPU benchmarks await Laptop 2. |
+
+See [browser run and receipts](evidence/batch-pilot-20261119/batch-pilot.json), [independent chain and database checks](evidence/batch-pilot-20261119/settlement-checks.json), and [native matrix evidence](evidence/batch-pilot-20261119/matrix/cpu-integration.json).
+
 ## November 18 local acceptance run
 
 On the working tree based on `165b01e`, Laptop 1 ran MongoDB 7, a freshly deployed

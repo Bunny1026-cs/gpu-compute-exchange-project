@@ -27,6 +27,9 @@ const gpuSchema = new mongoose.Schema(
   {
     workerKeyHash: { type: String, select: false },
     executionMode: String,
+    agentId: mongoose.Schema.Types.ObjectId,
+    deviceKey: String,
+    rateWeiPerMinute: String,
     workerSession: { type: String, select: false },
     capabilities: mongoose.Schema.Types.Mixed,
     lastHeartbeat: Date,
@@ -93,6 +96,7 @@ const gpuSchema = new mongoose.Schema(
 // ── Indexes ───────────────────────────────────────────────────
 // Scheduler queries: "find available GPUs for this provider"
 gpuSchema.index({ providerId: 1 });
+gpuSchema.index({ agentId: 1, deviceKey: 1 }, { unique: true, partialFilterExpression: { agentId: { $exists: true } } });
 
 // Marketplace queries: "show all available GPUs"
 gpuSchema.index({ availability: 1 });

@@ -1,0 +1,107 @@
+{
+  "id": "6afecd7a59488c00cbe109b6",
+  "amountWei": "12345",
+  "tx": "0x8a4f44ba6838eeedcf414dae205f667139f0832eb22aa63840a33019870eb148",
+  "provider": "0x6fa04142CB390d3FA261075Fe31F3BF503a00Ef5",
+  "reason": null,
+  "exit": 0,
+  "files": [
+    {
+      "name": "metrics.json",
+      "actual": "{\"count\":3,\"sum\":12}",
+      "expected": "{\"count\":3,\"sum\":12}",
+      "sha256": "3e40387a2031a4bd2537450614c2e883d50fe117dbdd106e580d7a7deb640d8d"
+    },
+    {
+      "name": "rows.csv",
+      "actual": "value,square\n2,4\n4,16\n6,36\n",
+      "expected": "value,square\n2,4\n4,16\n6,36\n",
+      "sha256": "479c615004825424cb3777a0dc12250cfdb7f6265e52afcce7a416dfbe62d4ad"
+    }
+  ],
+  "sourceHash": "a4952c4c68e9a5f3b8f6a23d1f1fa552bea505c43f9450a176b7b667c726bc02",
+  "bundleHash": "0aeec41691a0ba81367061cbd786b11e0bcb56367091445a17ed24d913878204",
+  "metadata": {
+    "spec": {
+      "profile": "python-cpu",
+      "image": "python@sha256:fd95fa221297a88e1cf49c55ec1828edd7c5a428187e67b5d1805692d11588db",
+      "args": [],
+      "seconds": 45,
+      "outputs": [
+        "metrics.json",
+        "rows.csv"
+      ],
+      "minVramGiB": 0,
+      "scriptHash": "a4952c4c68e9a5f3b8f6a23d1f1fa552bea505c43f9450a176b7b667c726bc02",
+      "executionMode": "real_cpu_test"
+    },
+    "sha256": "0aeec41691a0ba81367061cbd786b11e0bcb56367091445a17ed24d913878204",
+    "artifactBytes": 281,
+    "exitCode": 0,
+    "elapsedMs": 12579.747200000156,
+    "device": "cpu",
+    "runtime": "3.12.10",
+    "capabilities": {
+      "deviceKey": "cpu",
+      "executionMode": "real_cpu_test",
+      "gpuMemory": 0,
+      "gpuModel": "CPU development slot",
+      "driver": null,
+      "testedImage": "python@sha256:fd95fa221297a88e1cf49c55ec1828edd7c5a428187e67b5d1805692d11588db",
+      "runtime": "3.12.10",
+      "cudaVersion": "0",
+      "computeCapability": null
+    }
+  },
+  "receipts": [
+    {
+      "action": "JobRegistered",
+      "txHash": "0xa7daa9041edd793a5e26c99dc9815c6ccde35f13914fdf9afc2d0f2e40bdaf51",
+      "gasUsed": "97080",
+      "blockNumber": 3,
+      "amountWei": null,
+      "confirmationMs": 48.02310000002035
+    },
+    {
+      "action": "FundsDeposited",
+      "txHash": "0x66fb7555a50592a1eef8c58a9385eb9dd4acff5e211bf9c32c41d42c80ad6ec2",
+      "gasUsed": "53307",
+      "blockNumber": 4,
+      "amountWei": "12345",
+      "confirmationMs": 47.56750000000466
+    },
+    {
+      "action": "JobAssigned",
+      "txHash": "0x0348b734c93c259786085d9ad624e65311a66bff38533729e8146c6b387e1427",
+      "gasUsed": "55998",
+      "blockNumber": 5,
+      "amountWei": null,
+      "confirmationMs": 48.07239999997546
+    },
+    {
+      "action": "ResultSubmitted",
+      "txHash": "0xf44bf51ea43fb631a15f88f952593c0a047df5e26f07d531d5c9c9d599fcec68",
+      "gasUsed": "53832",
+      "blockNumber": 6,
+      "amountWei": null
+    },
+    {
+      "action": "ResultVerified",
+      "txHash": "0x3895af2299869f2ab7cc8b7e226c4010925246c4c918bb1d16df5aef75845320",
+      "gasUsed": "33389",
+      "blockNumber": 7,
+      "amountWei": null,
+      "confirmationMs": 47.853799999982584
+    },
+    {
+      "action": "PaymentReleased",
+      "txHash": "0x8a4f44ba6838eeedcf414dae205f667139f0832eb22aa63840a33019870eb148",
+      "gasUsed": "54253",
+      "blockNumber": 8,
+      "amountWei": "12345",
+      "confirmationMs": 48.05569999999716
+    }
+  ],
+  "stdout": "QA_TOTAL=12\n",
+  "preAcceptanceChainStatus": 4
+}

@@ -47,27 +47,26 @@ export default function Register() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-header">
-          <span className="logo-icon" style={{ fontSize: "2rem" }}>⚡</span>
           <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Join the GPU Compute Exchange</p>
+          <p className="auth-subtitle">Choose a role to set up your workspace.</p>
         </div>
 
         <Alert type="error" message={error} onClose={() => setError("")} />
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
-            <label className="form-label">Full Name</label>
-            <input className="form-input" type="text" name="name" value={form.name} onChange={handleChange} placeholder="Your name" required disabled={loading} />
+            <label className="form-label" htmlFor="name">Full Name</label>
+            <input className="form-input" type="text" id="name" name="name" value={form.name} onChange={handleChange} placeholder="Your name" required disabled={loading} />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email</label>
-            <input className="form-input" type="email" name="email" value={form.email} onChange={handleChange} placeholder="you@example.com" required disabled={loading} />
+            <label className="form-label" htmlFor="email">Email</label>
+            <input className="form-input" type="email" id="email" name="email" value={form.email} onChange={handleChange} placeholder="you@example.com" required disabled={loading} />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Password</label>
-            <input className="form-input" type="password" name="password" value={form.password} onChange={handleChange} placeholder="Min. 8 characters" required disabled={loading} />
+            <label className="form-label" htmlFor="password">Password</label>
+            <input className="form-input" type="password" id="password" name="password" value={form.password} onChange={handleChange} placeholder="Min. 8 characters" required disabled={loading} />
           </div>
 
           <div className="form-group">
@@ -75,22 +74,23 @@ export default function Register() {
             <div className="role-toggle">
               {["CONSUMER", "PROVIDER"].map((r) => (
                 <button key={r} type="button"
+                  aria-pressed={form.role === r}
                   className={`role-btn ${form.role === r ? "active" : ""}`}
                   onClick={() => setForm((f) => ({ ...f, role: r }))}
                   disabled={loading}
                 >
-                  {r === "CONSUMER" ? "🧑‍💻 Consumer" : "🖥️ Provider"}
+                  {r === "CONSUMER" ? "Consumer" : "Provider"}
                 </button>
               ))}
             </div>
             <p className="form-hint">
-              {form.role === "CONSUMER" ? "Submit ML jobs and access GPU compute." : "Register GPUs and earn by executing jobs."}
+              {form.role === "CONSUMER" ? "Submit compute jobs and retrieve verified results." : "Register GPUs and earn by executing jobs."}
             </p>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Wallet Address <span className="form-optional">(optional)</span></label>
-            <input className="form-input" type="text" name="walletAddress" value={form.walletAddress} onChange={handleChange} placeholder="0x... (for future blockchain integration)" disabled={loading} />
+            <label className="form-label" htmlFor="walletAddress">Wallet Address <span className="form-optional">(optional)</span></label>
+            <input className="form-input" type="text" id="walletAddress" name="walletAddress" value={form.walletAddress} onChange={handleChange} placeholder="0x…" disabled={loading} />
           </div>
 
           <button className="btn btn-primary btn-full" type="submit" disabled={loading}>

@@ -1,0 +1,20 @@
+[
+  {
+    "jobId": "6afe8fbe9f2b38af069a6b9a",
+    "blockchainJobId": "0x00000000000000000000000000000000000000006afe8fbe9f2b38af069a6b9a",
+    "provider": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+    "consumer": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+    "operator": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "resultHash": "a832a3d577c2d0f4ade0cf07507301d49610dc200460ab85f6d7e1b44bd45703",
+    "paymentWei": "1000000000000000",
+    "verifiedReceiptEvents": [
+      "JobRegistered",
+      "FundsDeposited",
+      "JobAssigned",
+      "ResultSubmitted",
+      "ResultVerified",
+      "PaymentReleased"
+    ],
+    "reservationReleased": true
+  }
+]

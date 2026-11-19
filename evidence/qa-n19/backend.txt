@@ -1,0 +1,585 @@
+
+> gpu-compute-exchange-backend@0.1.0 test
+> node --test test/matcher.test.js test/scheduler.test.js test/gpuController.test.js test/ipfs.test.js test/devRoutes.test.js test/validation.test.js test/workerLifecycle.test.js test/blockchainService.test.js test/realCompute.test.js test/batch.test.js
+
+TAP version 13
+# Subtest: bind immutable source, profile and controlled output paths
+ok 1 - bind immutable source, profile and controlled output paths
+  ---
+  duration_ms: 4.9279
+  type: 'test'
+  ...
+# Subtest: choose a compatible worker within an exact wei quote
+ok 2 - choose a compatible worker within an exact wei quote
+  ---
+  duration_ms: 4.1516
+  type: 'test'
+  ...
+# Subtest: reject stale lease before an upload can change the artifact
+ok 3 - reject stale lease before an upload can change the artifact
+  ---
+  duration_ms: 3.385
+  type: 'test'
+  ...
+# Subtest: expired reviews require an operator and repeated decisions do not reopen payment
+ok 4 - expired reviews require an operator and repeated decisions do not reopen payment
+  ---
+  duration_ms: 12.7185
+  type: 'test'
+  ...
+# Subtest: reject changed output bytes, undeclared files and oversized bundles
+ok 5 - reject changed output bytes, undeclared files and oversized bundles
+  ---
+  duration_ms: 59.0603
+  type: 'test'
+  ...
+# Subtest: _getNonce uses a raw eth_getTransactionCount call with the 'pending' tag
+ok 6 - _getNonce uses a raw eth_getTransactionCount call with the 'pending' tag
+  ---
+  duration_ms: 2337.2345
+  type: 'test'
+  ...
+# Subtest: _serialized runs same-address jobs strictly one after another
+ok 7 - _serialized runs same-address jobs strictly one after another
+  ---
+  duration_ms: 55.6405
+  type: 'test'
+  ...
+# Subtest: _serialized: a failed transaction does not block the next one, and its error propagates
+ok 8 - _serialized: a failed transaction does not block the next one, and its error propagates
+  ---
+  duration_ms: 22.3777
+  type: 'test'
+  ...
+# Subtest: _serialized: different addresses are not serialized against each other
+ok 9 - _serialized: different addresses are not serialized against each other
+  ---
+  duration_ms: 75.0494
+  type: 'test'
+  ...
+# Subtest: isDevRoutesEnabled: off by default, on only with the flag, never in production
+ok 10 - isDevRoutesEnabled: off by default, on only with the flag, never in production
+  ---
+  duration_ms: 3.3868
+  type: 'test'
+  ...
+# Subtest: default (no flag): dev routes are not mounted (404), health reports disabled
+ok 11 - default (no flag): dev routes are not mounted (404), health reports disabled
+  ---
+  duration_ms: 9118.4067
+  type: 'test'
+  ...
+# Subtest: production: dev routes stay unmounted even with ENABLE_DEV_ROUTES=true
+ok 12 - production: dev routes stay unmounted even with ENABLE_DEV_ROUTES=true
+  ---
+  duration_ms: 130.8795
+  type: 'test'
+  ...
+# Subtest: enabled in development: routes mounted and still require authentication
+ok 13 - enabled in development: routes mounted and still require authentication
+  ---
+  duration_ms: 102.3298
+  type: 'test'
+  ...
+# Subtest: refund/release/demo-escrow: another consumer or a provider gets 403 and nothing happens on-chain
+ok 14 - refund/release/demo-escrow: another consumer or a provider gets 403 and nothing happens on-chain
+  ---
+  duration_ms: 389.5107
+  type: 'test'
+  ...
+# Subtest: owner refund works, marks the job CANCELLED, and releases the BUSY GPU
+ok 15 - owner refund works, marks the job CANCELLED, and releases the BUSY GPU
+  ---
+  duration_ms: 140.1883
+  type: 'test'
+  ...
+# Subtest: owner release-payment works and releases the BUSY GPU
+ok 16 - owner release-payment works and releases the BUSY GPU
+  ---
+  duration_ms: 172.7676
+  type: 'test'
+  ...
+# Subtest: assign ignores a request-body providerAddress and uses the assigned GPU provider's wallet
+ok 17 - assign ignores a request-body providerAddress and uses the assigned GPU provider's wallet
+  ---
+  duration_ms: 173.4594
+  type: 'test'
+  ...
+# Subtest: verify ignores a request-body expectedResultHash and uses the stored resultHash
+ok 18 - verify ignores a request-body expectedResultHash and uses the stored resultHash
+  ---
+  duration_ms: 155.565
+  type: 'test'
+  ...
+# Subtest: submit-result returns 501 and makes no chain call
+ok 19 - submit-result returns 501 and makes no chain call
+  ---
+  duration_ms: 108.6345
+  type: 'test'
+  ...
+# Subtest: on-chain job view: unrelated user 403; owner and assigned provider 200
+ok 20 - on-chain job view: unrelated user 403; owner and assigned provider 200
+  ---
+  duration_ms: 175.4822
+  type: 'test'
+  ...
+# Subtest: owner demo-escrow still works when enabled (register + deposit)
+ok 21 - owner demo-escrow still works when enabled (register + deposit)
+  ---
+  duration_ms: 175.576
+  type: 'test'
+  ...
+# Subtest: updating status of a BUSY GPU returns 409 and changes nothing
+ok 22 - updating status of a BUSY GPU returns 409 and changes nothing
+  ---
+  duration_ms: 55.3405
+  type: 'test'
+  ...
+# Subtest: updating availability of a BUSY GPU returns 409 and changes nothing
+ok 23 - updating availability of a BUSY GPU returns 409 and changes nothing
+  ---
+  duration_ms: 12.5449
+  type: 'test'
+  ...
+# Subtest: a provider cannot set status BUSY via update
+ok 24 - a provider cannot set status BUSY via update
+  ---
+  duration_ms: 71.4793
+  type: 'test'
+  ...
+# Subtest: a provider cannot create a GPU with status BUSY
+ok 25 - a provider cannot create a GPU with status BUSY
+  ---
+  duration_ms: 32.9684
+  type: 'test'
+  ...
+# Subtest: GPU becoming BUSY between the read and the write: status update returns 409
+ok 26 - GPU becoming BUSY between the read and the write: status update returns 409
+  ---
+  duration_ms: 96.7763
+  type: 'test'
+  ...
+# Subtest: deleting a BUSY GPU returns 409 and keeps it
+ok 27 - deleting a BUSY GPU returns 409 and keeps it
+  ---
+  duration_ms: 72.6289
+  type: 'test'
+  ...
+# Subtest: GPU becoming BUSY between the check and the delete: returns 409 and keeps it
+ok 28 - GPU becoming BUSY between the check and the delete: returns 409 and keeps it
+  ---
+  duration_ms: 21.7749
+  type: 'test'
+  ...
+# Subtest: normal: provider creates an ACTIVE GPU
+ok 29 - normal: provider creates an ACTIVE GPU
+  ---
+  duration_ms: 12.6676
+  type: 'test'
+  ...
+# Subtest: normal: provider sets an ACTIVE GPU to INACTIVE and unlists it
+ok 30 - normal: provider sets an ACTIVE GPU to INACTIVE and unlists it
+  ---
+  duration_ms: 31.5494
+  type: 'test'
+  ...
+# Subtest: normal: provider may change the price of a BUSY GPU (no status/availability change)
+ok 31 - normal: provider may change the price of a BUSY GPU (no status/availability change)
+  ---
+  duration_ms: 31.6062
+  type: 'test'
+  ...
+# Subtest: normal: provider deletes a non-BUSY GPU
+ok 32 - normal: provider deletes a non-BUSY GPU
+  ---
+  duration_ms: 54.495
+  type: 'test'
+  ...
+# Subtest: ownership is still enforced: another provider gets 403
+ok 33 - ownership is still enforced: another provider gets 403
+  ---
+  duration_ms: 67.2896
+  type: 'test'
+  ...
+# Subtest: valid mock CID: upload then retrieve round-trips
+ok 34 - valid mock CID: upload then retrieve round-trips
+  ---
+  duration_ms: 55.8138
+  type: 'test'
+  ...
+# Subtest: path traversal identifiers are rejected and never read
+ok 35 - path traversal identifiers are rejected and never read
+  ---
+  duration_ms: 29.5648
+  type: 'test'
+  ...
+# Subtest: malformed identifiers are invalid in mock mode
+ok 36 - malformed identifiers are invalid in mock mode
+  ---
+  duration_ms: 4.0162
+  type: 'test'
+  ...
+# Subtest: real mode accepts CIDv0 / base32 CIDv1 syntax and rejects traversal
+ok 37 - real mode accepts CIDv0 / base32 CIDv1 syntax and rejects traversal
+  ---
+  duration_ms: 5.6966
+  type: 'test'
+  ...
+# Subtest: worker submitResult rejects a worker-supplied ipfsCid with 400 and leaves the job unchanged
+ok 38 - worker submitResult rejects a worker-supplied ipfsCid with 400 and leaves the job unchanged
+  ---
+  duration_ms: 43.4163
+  type: 'test'
+  ...
+# Subtest: worker submitResult without ipfsCid stores the backend-assigned CID
+ok 39 - worker submitResult without ipfsCid stores the backend-assigned CID
+  ---
+  duration_ms: 98.7787
+  type: 'test'
+  ...
+# Subtest: worker getIPFSContent rejects an invalid CID with 400 before any storage access
+ok 40 - worker getIPFSContent rejects an invalid CID with 400 before any storage access
+  ---
+  duration_ms: 20.1503
+  type: 'test'
+  ...
+# Subtest: job result endpoint does not read storage for an invalid stored CID
+ok 41 - job result endpoint does not read storage for an invalid stored CID
+  ---
+  duration_ms: 49.0266
+  type: 'test'
+  ...
+# Subtest: accepts a GPU that meets all requirements
+ok 42 - accepts a GPU that meets all requirements
+  ---
+  duration_ms: 6.5511
+  type: 'test'
+  ...
+# Subtest: accepts any listed ACTIVE GPU when no requirements are given
+ok 43 - accepts any listed ACTIVE GPU when no requirements are given
+  ---
+  duration_ms: 0.3909
+  type: 'test'
+  ...
+# Subtest: rejects insufficient memory
+ok 44 - rejects insufficient memory
+  ---
+  duration_ms: 0.3881
+  type: 'test'
+  ...
+# Subtest: rejects an older CUDA version (single-digit minor versions)
+ok 45 - rejects an older CUDA version (single-digit minor versions)
+  ---
+  duration_ms: 0.4435
+  type: 'test'
+  ...
+# Subtest: rejects a price above maximumPrice
+ok 46 - rejects a price above maximumPrice
+  ---
+  duration_ms: 0.4591
+  type: 'test'
+  ...
+# Subtest: rejects an unlisted (availability=false) GPU
+ok 47 - rejects an unlisted (availability=false) GPU
+  ---
+  duration_ms: 0.3411
+  type: 'test'
+  ...
+# Subtest: rejects INACTIVE and BUSY GPUs
+ok 48 - rejects INACTIVE and BUSY GPUs
+  ---
+  duration_ms: 0.6109
+  type: 'test'
+  ...
+# Subtest: ranks by lowest price first
+ok 49 - ranks by lowest price first
+  ---
+  duration_ms: 2.6049
+  type: 'test'
+  ...
+# Subtest: breaks price ties by smallest sufficient memory
+ok 50 - breaks price ties by smallest sufficient memory
+  ---
+  duration_ms: 1.2825
+  type: 'test'
+  ...
+# Subtest: breaks remaining ties deterministically by id
+ok 51 - breaks remaining ties deterministically by id
+  ---
+  duration_ms: 1.3562
+  type: 'test'
+  ...
+# Subtest: rankGPUs does not mutate its input
+ok 52 - rankGPUs does not mutate its input
+  ---
+  duration_ms: 0.6168
+  type: 'test'
+  ...
+# Subtest: findBestGPU reads requirements from job.input.requirements
+ok 53 - findBestGPU reads requirements from job.input.requirements
+  ---
+  duration_ms: 0.4717
+  type: 'test'
+  ...
+# Subtest: findBestGPU returns null when nothing is compatible
+ok 54 - findBestGPU returns null when nothing is compatible
+  ---
+  duration_ms: 0.2587
+  type: 'test'
+  ...
+# Subtest: findBestGPU handles a job with input = null
+ok 55 - findBestGPU handles a job with input = null
+  ---
+  duration_ms: 0.2316
+  type: 'test'
+  ...
+# Using verified local result file: Kubo read-back mismatch
+# Subtest: Kubo storage requires a round trip of the exact binary artifact
+ok 56 - Kubo storage requires a round trip of the exact binary artifact
+  ---
+  duration_ms: 77.3521
+  type: 'test'
+  ...
+# Subtest: real workload allowlist, bounded dimensions and strict GPU requirements
+ok 57 - real workload allowlist, bounded dimensions and strict GPU requirements
+  ---
+  duration_ms: 1.9999
+  type: 'test'
+  ...
+# Subtest: artifact hash binds exact bytes
+ok 58 - artifact hash binds exact bytes
+  ---
+  duration_ms: 0.9702
+  type: 'test'
+  ...
+# Subtest: real job status includes funding, settlement and refund checkpoints
+ok 59 - real job status includes funding, settlement and refund checkpoints
+  ---
+  duration_ms: 0.7989
+  type: 'test'
+  ...
+# Subtest: immutable workload and exact-string wei schema
+ok 60 - immutable workload and exact-string wei schema
+  ---
+  duration_ms: 0.5505
+  type: 'test'
+  ...
+# Subtest: chain instance reset and nonlocal network fail closed
+ok 61 - chain instance reset and nonlocal network fail closed
+  ---
+  duration_ms: 1.4634
+  type: 'test'
+  ...
+# Subtest: chain reset invalidates current payment display and releases only stale reservations
+ok 62 - chain reset invalidates current payment display and releases only stale reservations
+  ---
+  duration_ms: 2.6634
+  type: 'test'
+  ...
+# Subtest: settlement RPC failure preserves pending state without marking completed or releasing GPU
+ok 63 - settlement RPC failure preserves pending state without marking completed or releasing GPU
+  ---
+  duration_ms: 3.7877
+  type: 'test'
+  ...
+# Subtest: single cycle assigns the lowest-priced compatible GPU
+ok 64 - single cycle assigns the lowest-priced compatible GPU
+  ---
+  duration_ms: 110.4151
+  type: 'test'
+  ...
+# Subtest: overlapping cycles in one process: the second is skipped, no double allocation
+ok 65 - overlapping cycles in one process: the second is skipped, no double allocation
+  ---
+  duration_ms: 1164.9955
+  type: 'test'
+  ...
+# Subtest: a cycle triggered while another runs reports cycleSkipped
+ok 66 - a cycle triggered while another runs reports cycleSkipped
+  ---
+  duration_ms: 280.7945
+  type: 'test'
+  ...
+# Subtest: job claimed by another writer after the read: GPU is released, job keeps the other GPU
+ok 67 - job claimed by another writer after the read: GPU is released, job keeps the other GPU
+  ---
+  duration_ms: 113.0365
+  type: 'test'
+  ...
+# Subtest: injected database error during the job claim does not leave the GPU BUSY
+ok 68 - injected database error during the job claim does not leave the GPU BUSY
+  ---
+  duration_ms: 87.2948
+  type: 'test'
+  ...
+# Subtest: an error in one job does not stop the cycle for later jobs
+ok 69 - an error in one job does not stop the cycle for later jobs
+  ---
+  duration_ms: 314.9315
+  type: 'test'
+  ...
+# Subtest: FIFO: with one GPU, the oldest queued job is assigned first
+ok 70 - FIFO: with one GPU, the oldest queued job is assigned first
+  ---
+  duration_ms: 43.1249
+  type: 'test'
+  ...
+# Subtest: blockchain assignJob failure rolls the job back to QUEUED and releases the GPU
+ok 71 - blockchain assignJob failure rolls the job back to QUEUED and releases the GPU
+  ---
+  duration_ms: 98.4666
+  type: 'test'
+  ...
+# Subtest: blockchain failure after a worker already started the job: no rollback, GPU stays with the job
+ok 72 - blockchain failure after a worker already started the job: no rollback, GPU stays with the job
+  ---
+  duration_ms: 56.843
+  type: 'test'
+  ...
+# Subtest: CUDA: multi-digit minor versions compare numerically (11.10 > 11.8)
+ok 73 - CUDA: multi-digit minor versions compare numerically (11.10 > 11.8)
+  ---
+  duration_ms: 7.0331
+  type: 'test'
+  ...
+# Subtest: CUDA: equal versions with different precision are compatible (12 == 12.0 == 12.0.0)
+ok 74 - CUDA: equal versions with different precision are compatible (12 == 12.0 == 12.0.0)
+  ---
+  duration_ms: 0.4986
+  type: 'test'
+  ...
+# Subtest: CUDA: patch level is compared
+ok 75 - CUDA: patch level is compared
+  ---
+  duration_ms: 1.067
+  type: 'test'
+  ...
+# Subtest: CUDA: a malformed requirement matches no GPU
+ok 76 - CUDA: a malformed requirement matches no GPU
+  ---
+  duration_ms: 0.4646
+  type: 'test'
+  ...
+# Subtest: CUDA: a GPU with a malformed version is not matched when CUDA is required
+ok 77 - CUDA: a GPU with a malformed version is not matched when CUDA is required
+  ---
+  duration_ms: 2.6473
+  type: 'test'
+  ...
+# Subtest: parseCuda / compareCuda
+ok 78 - parseCuda / compareCuda
+  ---
+  duration_ms: 2.4653
+  type: 'test'
+  ...
+# Subtest: maximumPrice = 0 is a real limit (free GPUs only)
+ok 79 - maximumPrice = 0 is a real limit (free GPUs only)
+  ---
+  duration_ms: 0.6237
+  type: 'test'
+  ...
+# Subtest: absent requirement fields (undefined, null, empty string) impose no limit
+ok 80 - absent requirement fields (undefined, null, empty string) impose no limit
+  ---
+  duration_ms: 0.3806
+  type: 'test'
+  ...
+# Subtest: malformed memory or price requirement matches no GPU
+ok 81 - malformed memory or price requirement matches no GPU
+  ---
+  duration_ms: 1.0512
+  type: 'test'
+  ...
+# Subtest: createJob rejects malformed requirements with 400 and creates nothing
+ok 82 - createJob rejects malformed requirements with 400 and creates nothing
+  ---
+  duration_ms: 101.8045
+  type: 'test'
+  ...
+# Subtest: createJob rejects a non-numeric price and a non-string taskType
+ok 83 - createJob rejects a non-numeric price and a non-string taskType
+  ---
+  duration_ms: 13.1169
+  type: 'test'
+  ...
+# Subtest: createJob keeps the existing negative-value messages
+ok 84 - createJob keeps the existing negative-value messages
+  ---
+  duration_ms: 7.152
+  type: 'test'
+  ...
+# Subtest: createJob accepts valid requirements, including maximumPrice 0 and CUDA 11.10
+ok 85 - createJob accepts valid requirements, including maximumPrice 0 and CUDA 11.10
+  ---
+  duration_ms: 57.7116
+  type: 'test'
+  ...
+# Subtest: GPU create/update reject a malformed cudaVersion and accept a valid one
+ok 86 - GPU create/update reject a malformed cudaVersion and accept a valid one
+  ---
+  duration_ms: 188.1644
+  type: 'test'
+  ...
+# Subtest: concurrent start: exactly one succeeds, the rest get 400 with the original message
+ok 87 - concurrent start: exactly one succeeds, the rest get 400 with the original message
+  ---
+  duration_ms: 82.0814
+  type: 'test'
+  ...
+# Subtest: start on a missing job still returns 404
+ok 88 - start on a missing job still returns 404
+  ---
+  duration_ms: 20.2253
+  type: 'test'
+  ...
+# Subtest: concurrent result submissions: one accepted, the first accepted hash is not overwritten
+ok 89 - concurrent result submissions: one accepted, the first accepted hash is not overwritten
+  ---
+  duration_ms: 48.3164
+  type: 'test'
+  ...
+# Subtest: concurrent complete (chain available): one 200; verify and release are each called once; GPU released
+ok 90 - concurrent complete (chain available): one 200; verify and release are each called once; GPU released
+  ---
+  duration_ms: 147.1215
+  type: 'test'
+  ...
+# Subtest: complete without chain keeps the original behaviour (COMPLETED, GPU released)
+ok 91 - complete without chain keeps the original behaviour (COMPLETED, GPU released)
+  ---
+  duration_ms: 28.281
+  type: 'test'
+  ...
+# Subtest: concurrent fail: one 200, refund attempted once, GPU released once
+ok 92 - concurrent fail: one 200, refund attempted once, GPU released once
+  ---
+  duration_ms: 79.6733
+  type: 'test'
+  ...
+# Subtest: fail on a COMPLETED job is rejected and does not touch the GPU
+ok 93 - fail on a COMPLETED job is rejected and does not touch the GPU
+  ---
+  duration_ms: 31.2165
+  type: 'test'
+  ...
+# Subtest: GPU release never overrides a non-BUSY GPU (e.g. provider set INACTIVE)
+ok 94 - GPU release never overrides a non-BUSY GPU (e.g. provider set INACTIVE)
+  ---
+  duration_ms: 70.1563
+  type: 'test'
+  ...
+# Subtest: worker API key: missing/wrong → 401, correct → next(), unset → 503
+ok 95 - worker API key: missing/wrong → 401, correct → next(), unset → 503
+  ---
+  duration_ms: 9.4767
+  type: 'test'
+  ...
+1..95
+# tests 95
+# suites 0
+# pass 95
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13164.8983

@@ -166,7 +166,8 @@ class BlockchainService {
     try {
       // Local Hardhat can mine multiple state changes inside ethers' default
       // cache window. Reads used for settlement must observe each mined change.
-      this.provider = new ethers.JsonRpcProvider(rpcUrl, undefined, { cacheTimeout: -1 });
+      // Follow block ranges instead of relying on expiring server-side event filters.
+      this.provider = new ethers.JsonRpcProvider(rpcUrl, undefined, { cacheTimeout: -1, polling: true });
       const network = await this.provider.getNetwork();
       console.log(`[Blockchain] ✅ Connected to network: ${network.name} (chainId: ${network.chainId})`);
 

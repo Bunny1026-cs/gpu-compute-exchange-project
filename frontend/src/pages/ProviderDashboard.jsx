@@ -6,6 +6,8 @@ import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { gpuAPI } from "../services/api";
+import Modal from "../components/Modal";
+import { PairAgent, DeviceSettings } from "../components/AgentSettings";
 import WorkerSetup from "../components/WorkerSetup";
 import Alert from "../components/Alert";
 import Spinner from "../components/Spinner";
@@ -28,7 +30,7 @@ export default function ProviderDashboard() {
   const [formError, setFE]      = useState("");
 
   const fetchMyGPUs = useCallback(async () => {
-    setL(true); setError("");
+    setError("");
     try {
       const res = await gpuAPI.list("?mine=true");
       setGpus(res.data || []);
@@ -98,15 +100,16 @@ export default function ProviderDashboard() {
   return (
     <div className="page">
       <div className="page-header">
-        <h1 className="page-title">Provider Dashboard</h1>
-        <p className="page-subtitle">Manage your GPUs — welcome, <strong>{user?.name}</strong></p>
+        <div><h1 className="page-title">Provider dashboard</h1>
+        <p className="page-subtitle">Manage worker availability and settings for {user?.name}.</p></div>
       </div>
 
       <Alert type="success" message={success} onClose={() => setSuccess("")} />
       <Alert type="error"   message={error}   onClose={() => setError("")} />
 
+      <PairAgent />
       {/* Stats strip */}
-      <div className="stats-row">
+      {!loading && !error && <div className="stats-row">
         <div className="stat-card">
           <div className="stat-value">{gpus.length}</div>
           <div className="stat-label">Registered GPUs</div>
@@ -119,7 +122,7 @@ export default function ProviderDashboard() {
           <div className="stat-value">{gpus.filter(g => g.online).length}</div>
           <div className="stat-label">Workers online</div>
         </div>
-      </div>
+      </div>}
 
       <div className="section-header">
         <h2 className="section-label">My GPUs</h2>
@@ -131,9 +134,8 @@ export default function ProviderDashboard() {
 
       {loading && <Spinner text="Loading your GPUs…" />}
 
-      {!loading && gpus.length === 0 && (
+      {!loading && !error && gpus.length === 0 && (
         <div className="empty-state">
-          <span>🖥️</span>
           <p>No GPUs registered yet.</p>
           <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={openNew}>Register Your First GPU</button>
         </div>
@@ -150,49 +152,43 @@ export default function ProviderDashboard() {
               </span>
             </div>
             <div className="gpu-specs">
-              <span>💾 {gpu.gpuMemory} GB</span>
-              <span>⚡ CUDA {gpu.cudaVersion}</span>
-              <span>📊 {gpu.status}</span>
+              {gpu.executionMode === "real_gpu" && <><span>{gpu.gpuMemory} GB</span><span>CUDA {gpu.cudaVersion}</span></>}
+              <span>Slot status · {gpu.status}</span>
             </div>
-            <WorkerSetup gpu={gpu} refresh={fetchMyGPUs} />
-            <div className="gpu-price">Local test ETH reservation rate shown to consumers</div>
-            <div className="gpu-actions">
-              <button disabled={gpu.status === "BUSY"} className="btn btn-ghost btn-xs" onClick={() => openEdit(gpu)}>✏️ Edit</button>
+            {gpu.agentId ? <DeviceSettings gpu={gpu} refresh={fetchMyGPUs} /> : <WorkerSetup gpu={gpu} refresh={fetchMyGPUs} />}
+
+            {!gpu.agentId && <div className="gpu-actions">
+              <button disabled={gpu.status === "BUSY"} className="btn btn-ghost btn-xs" onClick={() => openEdit(gpu)}>Edit</button>
               <button className="btn btn-ghost btn-xs" onClick={() => toggleAvailability(gpu)}
                 disabled={gpu.status === "BUSY"} title={gpu.status === "BUSY" ? "Locked while a job is assigned or running" : undefined}>
-                {gpu.availability ? "⏸ Unlist" : "▶ List"}
+                {gpu.availability ? "Unlist" : "List"}
               </button>
               <button className="btn btn-danger btn-xs" onClick={() => handleDelete(gpu._id)}
-                disabled={gpu.status === "BUSY"} title={gpu.status === "BUSY" ? "Locked while a job is assigned or running" : undefined}>🗑 Delete</button>
-            </div>
+                disabled={gpu.status === "BUSY"} title={gpu.status === "BUSY" ? "Locked while a job is assigned or running" : undefined}>Delete</button>
+            </div>}
           </div>
         ))}
       </div>
 
       {/* GPU Form Modal */}
       {formMode !== null && (
-        <div className="modal-overlay" onClick={closeForm}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{formMode === "new" ? "Register New GPU" : "Edit GPU"}</h3>
-              <button className="btn-clear" onClick={closeForm}>✕</button>
-            </div>
+        <Modal title={formMode === "new" ? "Register new GPU" : "Edit GPU settings"} onClose={closeForm}>
             <Alert type="error" message={formError} onClose={() => setFE("")} />
             <form onSubmit={handleSave} className="auth-form">
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">GPU Model *</label>
-                  <input className="form-input" name="gpuModel" value={form.gpuModel} onChange={handleChange} placeholder="e.g. RTX 4090" required disabled={saving || formMode !== "new"} />
+                  <label className="form-label" htmlFor="gpuModel">GPU Model *</label>
+                  <input className="form-input" id="gpuModel" name="gpuModel" value={form.gpuModel} onChange={handleChange} placeholder="e.g. RTX 4090" required disabled={saving || formMode !== "new"} />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Memory (GB) *</label>
-                  <input className="form-input" type="number" name="gpuMemory" value={form.gpuMemory} onChange={handleChange} placeholder="24" min="1" required disabled={saving || formMode !== "new"} />
+                  <label className="form-label" htmlFor="gpuMemory">Memory (GB) *</label>
+                  <input className="form-input" type="number" id="gpuMemory" name="gpuMemory" value={form.gpuMemory} onChange={handleChange} placeholder="24" min="1" required disabled={saving || formMode !== "new"} />
                 </div>
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">CUDA Version *</label>
-                  <input className="form-input" name="cudaVersion" value={form.cudaVersion} onChange={handleChange} placeholder="12.2" required disabled={saving || formMode !== "new"} />
+                  <label className="form-label" htmlFor="cudaVersion">CUDA Version *</label>
+                  <input className="form-input" id="cudaVersion" name="cudaVersion" value={form.cudaVersion} onChange={handleChange} placeholder="12.2" required disabled={saving || formMode !== "new"} />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Pricing</label>
@@ -201,8 +197,8 @@ export default function ProviderDashboard() {
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label className="form-label">Status</label>
-                  <select className="form-input" name="status" value={form.status} onChange={handleChange} disabled={saving || editingBusy}>
+                  <label className="form-label" htmlFor="status">Status</label>
+                  <select className="form-input" id="status" name="status" value={form.status} onChange={handleChange} disabled={saving || editingBusy}>
                     {editingBusy
                       ? <option value="BUSY">BUSY (managed by scheduler)</option>
                       : GPU_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -223,12 +219,11 @@ export default function ProviderDashboard() {
                 <button className="btn btn-ghost" type="button" onClick={closeForm} disabled={saving}>Cancel</button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
       <div className="quick-links">
-        <Link to="/provider/jobs" className="btn btn-ghost">📋 Jobs on My GPUs</Link>
+        <Link to="/provider/jobs" className="btn btn-ghost">Jobs on My GPUs</Link>
       </div>
     </div>
   );

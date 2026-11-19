@@ -38,6 +38,7 @@ const mongoose = require("mongoose");
 
 // ── Constants ─────────────────────────────────────────────────
 const JOB_STATUS = Object.freeze({
+  DRAFT: "DRAFT", REVIEW: "REVIEW", DISPUTED: "DISPUTED",
   AWAITING_FUNDING: "AWAITING_FUNDING",
   SETTLEMENT_PENDING: "SETTLEMENT_PENDING",
   REFUND_PENDING: "REFUND_PENDING",
@@ -58,6 +59,14 @@ const jobSchema = new mongoose.Schema(
     protocol: { type: String, default: "legacy" },
     spec: { type: mongoose.Schema.Types.Mixed, immutable: true },
     specHash: { type: String, immutable: true },
+    scriptSource: { type: String, immutable: true, select: false },
+    readyLease: String,
+    retryDevicesAt: Date,
+    rejectedSlots: [mongoose.Schema.Types.ObjectId],
+    reviewUntil: Date,
+    decision: String,
+    reviewHistory: [{ decision: String, reason: String, actor: String, at: Date }],
+    liveLog: String,
     rateWeiPerMinute: String,
     reservedMinutes: Number,
     chainInstance: String,

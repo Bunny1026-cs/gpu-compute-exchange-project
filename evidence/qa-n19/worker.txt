@@ -1,0 +1,54 @@
+python : test_cpu_requires_opt_in_and_has_no_gpu_flag 
+(test_batch_executor.PairedDeviceTests.test_cpu_requires_opt_in_and_has_no_gpu_flag) ... ok
+At line:2 char:1
++ python -m unittest discover -s tests -v *> ../evidence/qa-n19/worker. ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (test_cpu_requir...pu_flag) ... ok:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+test_discovery_keeps_failed_gpu_visible_without_cuda_readiness 
+(test_batch_executor.PairedDeviceTests.test_discovery_keeps_failed_gpu_visible_without_cuda_readiness) ... ok
+test_different_job_or_input_changes_hash (test_executor.TestDeterminism.test_different_job_or_input_changes_hash) ... 
+ok
+test_every_task_type_is_deterministic (test_executor.TestDeterminism.test_every_task_type_is_deterministic) ... ok
+test_hash_is_sha256_of_submitted_result_data 
+(test_executor.TestDeterminism.test_hash_is_sha256_of_submitted_result_data) ... ok
+test_same_job_same_hash_and_data (test_executor.TestDeterminism.test_same_job_same_hash_and_data) ... ok
+test_wall_clock_time_is_not_part_of_hashed_data 
+(test_executor.TestDeterminism.test_wall_clock_time_is_not_part_of_hashed_data) ... ok
+test_gpu_none_does_not_raise (test_executor.TestNullSafety.test_gpu_none_does_not_raise) ... ok
+test_input_none_for_every_task_type (test_executor.TestNullSafety.test_input_none_for_every_task_type) ... ok
+test_missing_task_type_defaults_to_inference 
+(test_executor.TestNullSafety.test_missing_task_type_defaults_to_inference) ... ok
+test_non_dict_input_is_ignored_safely (test_executor.TestNullSafety.test_non_dict_input_is_ignored_safely) ... ok
+test_numeric_string_epochs (test_executor.TestNullSafety.test_numeric_string_epochs) ... ok
+test_child_error_propagates (test_matrix_workload.TestMatrixWorkload.test_child_error_propagates) ... ok
+test_corrupt_numerical_result_rejected 
+(test_matrix_workload.TestMatrixWorkload.test_corrupt_numerical_result_rejected) ... ok
+test_nan_and_wrong_shape_rejected (test_matrix_workload.TestMatrixWorkload.test_nan_and_wrong_shape_rejected) ... ok
+test_real_cpu_artifact_is_reproducible_and_independently_verified 
+(test_matrix_workload.TestMatrixWorkload.test_real_cpu_artifact_is_reproducible_and_independently_verified) ... ok
+test_real_gpu_never_falls_back (test_matrix_workload.TestMatrixWorkload.test_real_gpu_never_falls_back) ... ok
+test_timeout_propagates (test_matrix_workload.TestMatrixWorkload.test_timeout_propagates) ... ok
+test_two_workers_cannot_hold_the_same_device_lock 
+(test_matrix_workload.TestMatrixWorkload.test_two_workers_cannot_hold_the_same_device_lock) ... 
+C:\Python313\Lib\site-packages\requests\__init__.py:113: RequestsDependencyWarning: urllib3 (2.6.3) or chardet 
+(7.4.3)/charset_normalizer (3.4.4) doesn't match a supported version!
+  warnings.warn(
+ok
+test_unsafe_or_unbounded_spec_rejected 
+(test_matrix_workload.TestMatrixWorkload.test_unsafe_or_unbounded_spec_rejected) ... ok
+test_backend_refuses_api_path_and_credentials 
+(test_preflight.TestPreflight.test_backend_refuses_api_path_and_credentials) ... ok
+test_cpu_only_child_stays_failed (test_preflight.TestPreflight.test_cpu_only_child_stays_failed) ... ok
+test_cuda_crash_is_failure (test_preflight.TestPreflight.test_cuda_crash_is_failure) ... ok
+test_cuda_timeout_is_failure (test_preflight.TestPreflight.test_cuda_timeout_is_failure) ... ok
+test_http_success_does_not_claim_database_readiness 
+(test_preflight.TestPreflight.test_http_success_does_not_claim_database_readiness) ... ok
+test_invalid_child_json_is_failure (test_preflight.TestPreflight.test_invalid_child_json_is_failure) ... ok
+test_unrelated_server_is_not_accepted (test_preflight.TestPreflight.test_unrelated_server_is_not_accepted) ... ok
+
+----------------------------------------------------------------------
+Ran 27 tests in 3.951s
+
+OK

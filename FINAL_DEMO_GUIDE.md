@@ -15,10 +15,16 @@ npm.cmd ci --prefix backend
 npm.cmd ci --prefix blockchain
 npm.cmd ci --prefix frontend
 npm.cmd ci --prefix worker
+python -m venv --system-site-packages runtime/provider-venv
+runtime/provider-venv/Scripts/Activate.ps1
 python -m pip install -r worker/requirements-compute.txt
 # Laptop 1 CPU development / independent backend verification:
 python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 ```
+
+Activate the same environment in each new worker terminal, or use
+`runtime/provider-venv/Scripts/python.exe` in place of `python`.
+The environment can reuse the host PyTorch build while installing the worker's HTTP dependencies locally.
 
 For GPU installation use [LAPTOP2_SETUP.md](LAPTOP2_SETUP.md). Keep Python and
 NumPy/PyTorch versions recorded on both laptops. Never copy private runtime files
@@ -83,6 +89,87 @@ can use `http://LAPTOP1-IP:5173` without calling its own localhost. The same nat
 startup works for CUDA after running `node ops/setup-local.cjs real_gpu` and
 restarting backend, using a GPU worker on Laptop 2 instead of the local CPU worker.
 Do not run `ops/provision.cjs` while a slot is busy; it rotates credentials.
+
+## Self-service batch pilot
+
+Start MongoDB, Hardhat, the API and Vite with steps 1–5 and 7 above. Step 6 starts the separate matrix worker and is optional for the batch pilot. Use Docker Desktop in Linux-container mode on the provider machine. From the repository root in PowerShell, pull the exact runtime and inspect the detected device inventory:
+
+```powershell
+$profiles = Get-Content worker/profiles.json -Raw | ConvertFrom-Json
+docker pull $profiles.'python-cpu'
+$env:WORKER_ENV_FILE = (Resolve-Path runtime/worker.env).Path
+python worker/agent.py --discover --cpu-dev
+```
+
+Sign in as the provider and choose **Pair local agent**. In the same PowerShell terminal, enter the displayed code within five minutes:
+
+```powershell
+$code = Read-Host 'Single-use pairing code'
+python worker/agent.py --cpu-dev --pair $code
+```
+
+For later starts use `python worker/agent.py --cpu-dev`. The ignored `runtime/paired-agent.json` holds the agent credential. Pairing creates disabled devices. Enable the **CPU development slot** and set a positive integer rate in wei/min. **Stop accepting jobs** stops new reservations while an assigned job completes. Restart the agent to rediscover changed hardware. The API, RPC, provider wallet and explicit CPU-mode setting come from the worker environment file.
+
+In a second browser profile, sign in as the consumer. Choose the Python script workload and upload a trusted `.py` file or paste this script. Select the Python CPU profile, set arguments to `["21"]`, a 25-second limit and expected output `result.txt`.
+
+```python
+import sys
+print("Writing result", flush=True)
+with open("result.txt", "w") as output:
+    output.write(str(2 * int(sys.argv[1])))
+```
+
+1. Select **Save and quote**. The quote is the selected rate times the runtime rounded up to whole minutes. A missing compatible device saves a draft. **Refresh quote** checks again.
+2. Fund the quote with demo test ETH. The scheduler reserves a slot with a rate within the quote. The agent probes the runtime before on-chain assignment. The escrow payout remains the fixed funded amount.
+3. Watch the job and log tail. Download `result.txt` in REVIEW and confirm its contents are `42`. **Accept and pay** releases the escrow. Inspect the provider signature and payment receipts in the job.
+4. Select **Run again** for a new job with identical inputs and a fresh quote. To demonstrate a timeout, submit `import time; time.sleep(45)` with a two-second limit. Verify REFUNDED, a RefundIssued receipt and the available slot.
+5. To exercise review, choose **Report issue** and enter a reason. Reviews expire after 24 hours. On Laptop 1 an operator with access to the backend configuration can inspect and resolve them:
+
+```powershell
+node ops/resolve-review.cjs list
+$job = Read-Host 'Disputed or expired job ID'
+node ops/resolve-review.cjs $job refund "Output failed the agreed acceptance check"
+# To pay instead: node ops/resolve-review.cjs $job accept "Output accepted after review"
+```
+
+The runtime permits 1–600 seconds, 48 KiB of source, up to eight flat output filenames and 2 MiB of returned bytes combined. Use the current directory for outputs. The container runs as UID 65534 with one CPU, 1 GiB of host memory, a 64-process limit, a read-only root and input, bounded temporary filesystems and networking disabled. Package dependencies must be present in the pinned image. The agent keeps signing credentials on the host. Batch verification checks bytes and file digests. Consumers determine whether a script produced the intended result.
+
+### Reproduce automated batch checks
+
+Use a dedicated local demo database and local Hardhat chain. Install the browser tools using the commands at the end of this guide. With the paired CPU agent running, run the following at the root. The browser test sets the pilot device rate and leaves a disputed repeat job for the operator exercise. The scheduling test enrolls two explicitly synthetic devices, exercises contention and failed readiness with real local escrow, and retires its fixture slots.
+
+```powershell
+$env:NODE_PATH = (Resolve-Path runtime/browser-tools/node_modules).Path
+$env:EVIDENCE_DIR = Join-Path $PWD 'runtime/batch-evidence'
+node ops/batch-rehearsal.cjs
+$job = (Get-Content "$env:EVIDENCE_DIR/batch-pilot.json" -Raw | ConvertFrom-Json).disputeJob
+node ops/resolve-review.cjs $job refund "Rehearsal dispute resolved"
+node ops/check-settlement.cjs "$env:EVIDENCE_DIR/batch-pilot.json"
+node ops/batch-reservation-check.cjs
+npm.cmd test --prefix backend
+npm.cmd test --prefix blockchain
+Push-Location worker
+python -m unittest discover -s tests -v
+Pop-Location
+npm.cmd run build --prefix frontend
+npm.cmd run lint --prefix frontend
+```
+
+### Laptop 2 batch CUDA
+
+Follow the private-LAN and wallet setup in `LAPTOP2_SETUP.md`. Start Docker with NVIDIA GPU passthrough. Configure Laptop 1 API and RPC addresses in the ignored worker environment and use a provider-only local Hardhat wallet with gas. The batch agent uses pairing in place of the native matrix worker key. From Laptop 2:
+
+```powershell
+$profiles = Get-Content worker/profiles.json -Raw | ConvertFrom-Json
+docker pull $profiles.'pytorch-cuda'
+nvidia-smi
+$env:WORKER_ENV_FILE = (Resolve-Path worker/.env).Path
+python worker/agent.py --discover
+$code = Read-Host 'Pairing code from provider dashboard'
+python worker/agent.py --pair $code
+```
+
+Start subsequent sessions with `python worker/agent.py`. Enable each desired GPU. The agent selects by NVIDIA UUID and must complete a CUDA dot product in the pinned image on that device. On the consumer dashboard choose the CUDA profile, set minimum VRAM and choose **Load training template**. Download `metrics.json` and `checkpoint.pt` before accepting. Physical CUDA, passthrough and two-laptop results must be recorded on the target hardware.
 
 ## Eight-step demonstration (10–15 minutes)
 

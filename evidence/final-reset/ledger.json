@@ -1,0 +1,161 @@
+[
+  {
+    "id": "6afecb465890cbd0bc5f6562",
+    "status": "COMPLETED",
+    "amountWei": "1000000000000000",
+    "terminalTx": "0xc5b77f8a6194c834e75b4f57a630ebb48dbbf3e64b1a8aca9afd042b8dd13d73",
+    "events": [
+      {
+        "event": "FundsDeposited",
+        "from": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "tx": "0xaa995ede09b66d58b5b870a51daee49aca21bde39e9fbb975dd2328d24b66133",
+        "block": 3
+      },
+      {
+        "event": "JobAssigned",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0x13b55b70292051b615272db36baee590db779246520256e3056f6331c756a51e",
+        "block": 4
+      },
+      {
+        "event": "ResultSubmitted",
+        "from": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "tx": "0xa675a9e136495c8a12d06dde80389155a2d427619157dfa1ac5822fc03efda3f",
+        "block": 5
+      },
+      {
+        "event": "PaymentReleased",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0xc5b77f8a6194c834e75b4f57a630ebb48dbbf3e64b1a8aca9afd042b8dd13d73",
+        "block": 7
+      }
+    ],
+    "deviceReleased": true
+  },
+  {
+    "id": "6afecb8d5890cbd0bc5f6568",
+    "status": "COMPLETED",
+    "amountWei": "1000000000000000",
+    "terminalTx": "0xb1d6c60afa712ba7a9b99a17d7206222cda9037bd04ccac0ffa222b040996d59",
+    "events": [
+      {
+        "event": "FundsDeposited",
+        "from": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "tx": "0x25d5ea862100f444ff7ca52111cbe88fb2f3ab730c0bf8bb734de17d248af59d",
+        "block": 9
+      },
+      {
+        "event": "JobAssigned",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0x1ada8f0dc08affff212febc60d5663f8f5ac2de74d8ac9617ee7413bdf35ab18",
+        "block": 10
+      },
+      {
+        "event": "ResultSubmitted",
+        "from": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "tx": "0x39cc05778d524996b42d58172b8307af6c1c511861098c0a771389e57a40580d",
+        "block": 11
+      },
+      {
+        "event": "PaymentReleased",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0xb1d6c60afa712ba7a9b99a17d7206222cda9037bd04ccac0ffa222b040996d59",
+        "block": 13
+      }
+    ],
+    "deviceReleased": true
+  },
+  {
+    "id": "6afedbdf52aa9b9ff0dfa483",
+    "status": "COMPLETED",
+    "amountWei": "12345",
+    "terminalTx": "0x75f1959f27c3ef1a40a9557a556a33300f3e35f62e3b7445f8aab89e7fe1d982",
+    "events": [
+      {
+        "event": "FundsDeposited",
+        "from": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "tx": "0xcbc45a094466333223143a3ee39ff1fef2168b402969917c455c673588808b42",
+        "block": 15
+      },
+      {
+        "event": "JobAssigned",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0xc3c13cdb4a3d470c261b235176bc1f3930ec03502142529dd3f37c54b72b4a87",
+        "block": 16
+      },
+      {
+        "event": "ResultSubmitted",
+        "from": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "tx": "0xa72ec9bdd54d6ab4bbe665bfd673bcd0fd635b05cfdcba49bacc8b6773bf7512",
+        "block": 17
+      },
+      {
+        "event": "PaymentReleased",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0x75f1959f27c3ef1a40a9557a556a33300f3e35f62e3b7445f8aab89e7fe1d982",
+        "block": 19
+      }
+    ],
+    "deviceReleased": true
+  },
+  {
+    "id": "6afedc41ad97bb55c723749e",
+    "status": "COMPLETED",
+    "amountWei": "1000000000000000",
+    "terminalTx": "0xd035558ba8f6d6c2231699bd7288deac3053762dbcfb37602877822bfe4461b6",
+    "events": [
+      {
+        "event": "FundsDeposited",
+        "from": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "tx": "0x9e2e26b7b9b2b69bd41e8080a5ef33a9514d451972a44c808744197574f5c548",
+        "block": 25
+      },
+      {
+        "event": "JobAssigned",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0xbb337696ad7fadb683ca44287be1aea310dc41e1867c2dba6e4b617a5fab863c",
+        "block": 26
+      },
+      {
+        "event": "ResultSubmitted",
+        "from": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        "tx": "0xf7342c7fc191dfd2f3de442b606778e3b79bbd10cd9517e1c0e3695e0b0da27f",
+        "block": 27
+      },
+      {
+        "event": "PaymentReleased",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0xd035558ba8f6d6c2231699bd7288deac3053762dbcfb37602877822bfe4461b6",
+        "block": 29
+      }
+    ],
+    "deviceReleased": true
+  },
+  {
+    "id": "6afedbfc52aa9b9ff0dfa49a",
+    "status": "REFUNDED",
+    "amountWei": "12345",
+    "terminalTx": "0x408fdd6f9bd240a879ac9f517b0dca069a4b1f8acf7f04037c5b9ed3ba541573",
+    "events": [
+      {
+        "event": "FundsDeposited",
+        "from": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "tx": "0x5a5cbae16b9e8c4b57563cfdc5771ade37de3a7e676dba479d20822087a1d6fc",
+        "block": 21
+      },
+      {
+        "event": "JobAssigned",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0x3cfa884c06bb220c1d932a6a48acba1dc1a07f2b47f697af07bd99cc5579d6fe",
+        "block": 22
+      },
+      {
+        "event": "RefundIssued",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0x408fdd6f9bd240a879ac9f517b0dca069a4b1f8acf7f04037c5b9ed3ba541573",
+        "block": 23
+      }
+    ],
+    "deviceReleased": true
+  }
+]

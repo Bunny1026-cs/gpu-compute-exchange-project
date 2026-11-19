@@ -95,7 +95,7 @@ For provider-signed blockchain transactions, configure Laptop 2 to access Laptop
 7. Use separate consumer, provider, and operator wallet identities.
 8. Keep private keys and credentials in ignored environment files.
 9. Store wei values using BigInt or decimal strings, never JavaScript floating-point numbers.
-10. Do not run arbitrary user-supplied shell commands or Python code; use allowlisted workloads.
+10. Keep native worker execution restricted to the allowlisted matrix workload. The self-service pilot additionally accepts trusted Python scripts inside isolated, digest-pinned containers on explicitly enabled provider devices. Script results require consumer review before settlement. See `FINAL_DEMO_GUIDE.md` for the batch workflow and `TEST_RESULTS.md` for executed checks.
 11. Preserve existing fixes and regression tests.
 12. Make small, verified changes rather than a huge untested rewrite.
 

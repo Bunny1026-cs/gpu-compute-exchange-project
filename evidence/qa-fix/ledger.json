@@ -1,0 +1,35 @@
+[
+  {
+    "id": "6afed8b409b856f3787d40bb",
+    "status": "COMPLETED",
+    "amountWei": "12345",
+    "terminalTx": "0xe9b5f40bdb47831b4191c6989983ffb0dba8a092ec19060815f617bfadbb5a6e",
+    "events": [
+      {
+        "event": "FundsDeposited",
+        "from": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+        "tx": "0x6a3968cecd31fa3232258fc360448ab4c724ff48de9c70a204a6a05d12521c6a",
+        "block": 4
+      },
+      {
+        "event": "JobAssigned",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0xb05b88c1586985ee3f9985cc18d744183e7d8d77b4b281e48c400672f9c249fc",
+        "block": 5
+      },
+      {
+        "event": "ResultSubmitted",
+        "from": "0x0d599752b138F22c6299207d70262377dB4ABdE7",
+        "tx": "0xfdc1904ef3cfef30234971176bc6ed33143647311ed420f52cd68216fc91ab69",
+        "block": 6
+      },
+      {
+        "event": "PaymentReleased",
+        "from": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+        "tx": "0xe9b5f40bdb47831b4191c6989983ffb0dba8a092ec19060815f617bfadbb5a6e",
+        "block": 8
+      }
+    ],
+    "deviceReleased": true
+  }
+]

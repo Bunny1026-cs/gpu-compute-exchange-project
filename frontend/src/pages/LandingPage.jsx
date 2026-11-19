@@ -1,116 +1,21 @@
-/**
- * pages/LandingPage.jsx
- * Public landing page — preserves existing design from Phase 1
- */
 import { Link } from "react-router-dom";
+import accelerator from "../assets/accelerator.webp";
 
 export default function LandingPage() {
-  return (
-    <div className="app">
-      {/* ── Hero ── */}
-      <section className="hero">
-        <div className="hero-badge">⚡ Complete — Full Pipeline Live</div>
-        <h1 className="hero-title">
-          Decentralized<br />
-          <span className="gradient-text">GPU Compute</span><br />
-          Marketplace
-        </h1>
-        <p className="hero-subtitle">
-          Rent GPU compute on-demand. Submit matrix jobs. Track results.
-          Powered by MongoDB, Express, and React.
-        </p>
-        <div className="hero-actions">
-          <Link to="/register" className="btn btn-primary btn-lg">Get Started →</Link>
-          <Link to="/login"    className="btn btn-ghost btn-lg">Sign In</Link>
-        </div>
-      </section>
-
-      {/* ── How it works ── */}
-      <section className="section">
-        <h2 className="section-title">System Architecture</h2>
-        <div className="arch-flow">
-          {[
-            { icon: "👤", label: "Consumer" },
-            { icon: "⚙️", label: "Backend API" },
-            { icon: "🗄️", label: "MongoDB" },
-            { icon: "📋", label: "Job Queue" },
-            { icon: "🔀", label: "Scheduler" },
-            { icon: "🖥️", label: "GPU Worker" },
-            { icon: "🐳", label: "Docker" },
-            { icon: "🌐", label: "IPFS" },
-          ].map((step, i) => (
-            <div key={i} className="arch-step">
-              <div className="arch-icon">{step.icon}</div>
-              <div className="arch-label">{step.label}</div>
-              {i < 7 && <div className="arch-arrow">→</div>}
-            </div>
-          ))}
-        </div>
-        <div className="arch-blockchain">
-          <span className="arch-icon">📜</span>
-          <span>Smart Contract (Solidity) → Blockchain → Escrow / Payment</span>
-        </div>
-      </section>
-
-      {/* ── Roles ── */}
-      <section className="section">
-        <h2 className="section-title">Choose Your Role</h2>
-        <div className="role-cards-row">
-          <div className="role-feature-card">
-            <div className="role-card-icon">🧑‍💻</div>
-            <h3>Consumer</h3>
-            <ul className="feature-list">
-              <li>✅ Register &amp; Login</li>
-              <li>✅ Browse available GPUs</li>
-              <li>✅ Submit ML compute jobs</li>
-              <li>✅ Track job status in real-time</li>
-              <li>✅ Pay via blockchain escrow</li>
-              <li>✅ Download verified result artifacts</li>
-            </ul>
-            <Link to="/register" className="btn btn-primary" style={{ marginTop: 20, textDecoration: "none" }}>Start as Consumer</Link>
-          </div>
-          <div className="role-feature-card">
-            <div className="role-card-icon">🖥️</div>
-            <h3>GPU Provider</h3>
-            <ul className="feature-list">
-              <li>✅ Register &amp; Login</li>
-              <li>✅ Register GPU (model, VRAM, CUDA)</li>
-              <li>✅ Manage worker availability</li>
-              <li>✅ Manage your GPU fleet</li>
-              <li>✅ Execute assigned jobs</li>
-              <li>✅ Receive payment on completion</li>
-            </ul>
-            <Link to="/register" className="btn btn-primary" style={{ marginTop: 20, textDecoration: "none" }}>Start as Provider</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Dev Phases ── */}
-      <section className="section">
-        <h2 className="section-title">Development Progress</h2>
-        <div className="phases-grid">
-          {[
-            { phase: "Phase 1", label: "Project Scaffold",         status: "done" },
-            { phase: "Phase 2", label: "Database — MongoDB",  status: "done" },
-            { phase: "Phase 3", label: "Auth + Backend APIs",       status: "done" },
-            { phase: "Phase 4", label: "React Frontend",            status: "done" },
-            { phase: "Phase 5", label: "Smart Contracts",           status: "done" },
-            { phase: "Phase 6", label: "Native PyTorch Worker",       status: "done" },
-            { phase: "Phase 7", label: "Scheduler + Job Queue",     status: "done" },
-            { phase: "Phase 8", label: "Local Artifact Storage",      status: "done" },
-          ].map((p, i) => (
-            <div key={i} className={`phase-card ${p.status}`}>
-              <div className="phase-badge">{p.phase}</div>
-              <div className="phase-label">{p.label}</div>
-              <div className="phase-status">{p.status === "done" ? "✅ Complete" : "⏳ Pending"}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <footer className="footer">
-        <p>GPU Compute Exchange · Decentralized · Verified workloads · Scalable</p>
-      </footer>
-    </div>
-  );
+  return <div className="landing">
+    <section className="hero">
+      <div className="hero-copy">
+        <p className="eyebrow">Distributed GPU Compute Exchange</p>
+        <h1>GPU compute,<br /><em>on demand.</em></h1>
+        <p className="hero-intro">Run matrix workloads on provider hardware. Track each job from reservation to verified output and escrow settlement.</p>
+        <div className="hero-actions"><Link to="/register" className="btn btn-primary">Create an account <span aria-hidden="true">↗</span></Link><Link to="/login" className="btn btn-ghost">Sign in</Link></div>
+      </div>
+      <img className="hero-image" src={accelerator} alt="Studio illustration of a GPU accelerator with exposed cooling fins" />
+    </section>
+    <section className="workflow"><h2>How the exchange works</h2><div className="workflow-grid">
+      <article><h3>Reserve compute</h3><p>Set matrix dimensions, hardware requirements and runtime. Review the quote before funding with local test ETH.</p></article>
+      <article><h3>Connect a worker</h3><p>Register a provider slot and connect your worker. The scheduler matches funded jobs with available hardware.</p></article>
+      <article><h3>Verify and settle</h3><p>Inspect the numerical result, download the artifact and trace payment through the confirmed transaction receipts.</p></article>
+    </div></section>
+  </div>;
 }

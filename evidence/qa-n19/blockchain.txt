@@ -1,0 +1,58 @@
+
+> gpu-compute-exchange-blockchain@0.1.0 test
+> hardhat test
+
+
+
+  GPUComputeEscrow
+    Deployment
+      ✔ 1. Should deploy with correct owner and operator (2562ms)
+      ✔ 2. Should reject deployment with zero-address operator (106ms)
+      ✔ 3. Owner can change operator
+      ✔ 4. Non-owner cannot change operator
+    Register Job
+      ✔ 5. Consumer can register a job (49ms)
+      ✔ 6. Duplicate job registration rejected
+    Deposit Funds
+      ✔ 7. Consumer can deposit funds (39ms)
+      ✔ 8. Wrong user cannot deposit
+      ✔ 9. Zero deposit rejected
+      ✔ 10. Funds are locked in contract (438ms)
+    Assign Provider
+      ✔ 11. Operator can assign a provider to a funded job
+      ✔ 12. Non-operator cannot assign provider
+      ✔ 13. Assignment before funding rejected
+      ✔ 14. Zero address provider rejected
+    Submit Result
+      ✔ 15. Assigned provider can submit result (64ms)
+      ✔ 16. Wrong provider cannot submit result
+      ✔ 17. Empty result hash rejected
+    Verify Result
+      ✔ 18. Correct result hash verification passes
+      ✔ 19. Wrong hash verification rejected
+    Release Payment
+      ✔ 20. Payment releases to provider after verification (51ms)
+      ✔ 21. Payment release before verification rejected
+      ✔ 22. Provider receives correct amount
+      ✔ 23. Double payment release rejected
+    Refund
+      ✔ 24. Refund works from FUNDED state
+      ✔ 25. Unauthorized refund rejected
+      ✔ 26. Double refund rejected (status is REFUNDED, not FUNDED/ASSIGNED/RESULT_SUBMITTED)
+      ✔ 27. Refund from ASSIGNED state works
+      ✔ 28. Refund from RESULT_SUBMITTED state works
+    Invalid State Transitions
+      ✔ 29. Cannot deposit on already-funded job
+      ✔ 30. Cannot submit result for non-existent job
+      ✔ 31. Cannot verify in ASSIGNED status (must be RESULT_SUBMITTED)
+      ✔ 32. Cannot refund from REGISTERED state (no funds to refund)
+      ✔ 33. Cannot refund from COMPLETED state
+    Role Separation
+      ✔ 34. Operator cannot assign itself as provider
+      ✔ 35. Job's consumer cannot be assigned as provider
+      ✔ 36. Check uses the current operator after setOperator
+      ✔ 37. Rejected assignment leaves the job FUNDED with no provider
+
+
+  37 passing (4s)
+

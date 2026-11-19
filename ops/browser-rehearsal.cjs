@@ -57,6 +57,7 @@ async function main() {
     await consumer.screenshot({ path: path.join(directory, "consumer.png"), fullPage: true });
     await provider.getByRole("link", { name: /Jobs on My GPUs/ }).click();
     const card = provider.locator(".job-card").filter({ hasText: jobId });
+    await card.getByText("Workload, results and payment").click();
     await card.getByText("Job status · COMPLETED").waitFor();
     await card.getByText(/Confirmed local-chain receipts/).click();
     await card.getByText("PaymentReleased", { exact: true }).waitFor();
@@ -82,7 +83,7 @@ async function main() {
     await slot.getByRole("button", { name: /Edit/ }).click();
     await provider.locator("[name=status]").selectOption("INACTIVE");
     await provider.getByRole("button", { name: "Save Changes" }).click();
-    await slot.getByText(/📊 INACTIVE/).waitFor();
+    await slot.getByText(/Slot status · INACTIVE/).waitFor();
     provider.once("dialog", dialog => dialog.accept());
     await slot.getByRole("button", { name: /Delete/ }).click();
     await slot.waitFor({ state: "detached" });

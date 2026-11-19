@@ -2,34 +2,35 @@
  * pages/ConsumerJobs.jsx
  * Consumer — list and view submitted jobs
  */
-import { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { jobAPI } from "../services/api";
 import ComputeJobActions from "../components/ComputeJobActions";
 import Alert from "../components/Alert";
 import Spinner from "../components/Spinner";
 
-const STATUS_COLORS = {
-  AWAITING_FUNDING: "#f59e0b", SETTLEMENT_PENDING: "#8b5cf6", REFUND_PENDING: "#f59e0b", REFUNDED: "#6b7280",
-  CREATED:         "#6c63ff",
-  QUEUED:          "#f59e0b",
-  ASSIGNED:        "#3b82f6",
-  RUNNING:         "#10b981",
-  RESULT_UPLOADED: "#8b5cf6",
-  COMPLETED:       "#00d4aa",
-  FAILED:          "#ef4444",
-  CANCELLED:       "#6b7280",
-};
+import StatusBadge from "../components/StatusBadge";
 
 export default function ConsumerJobs() {
+  const [params] = useSearchParams();
+  const requestedJob=params.get("job");
   const [jobs, setJobs]   = useState([]);
+  useEffect(()=>{
+    if (!requestedJob) return;
+    let active=true;
+    jobAPI.get(requestedJob).then(r=>{if(active){setSelected(r.data);setResult(null);}}).catch(e=>{if(active)setError(e.message);});
+    return ()=>{active=false;};
+  },[requestedJob]);
   const [loading, setL]   = useState(true);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState(null);
   const [result, setResult] = useState(null);
+  const detailRef = useRef(null);
+  const selectedId = selected?._id;
+  useEffect(() => { if (selectedId) detailRef.current?.focus(); }, [selectedId]);
 
   const fetchJobs = useCallback(async () => {
-    setL(true); setError("");
+    setError("");
     try {
       const res = await jobAPI.list();
       setJobs(res.data || []);
@@ -65,9 +66,8 @@ export default function ConsumerJobs() {
       <Alert type="error" message={error} onClose={() => setError("")} />
       {loading && <Spinner text="Loading jobs…" />}
 
-      {!loading && jobs.length === 0 && (
+      {!loading && !error && jobs.length === 0 && (
         <div className="empty-state">
-          <span>📋</span>
           <p>No jobs submitted yet.</p>
           <Link to="/consumer" className="btn btn-primary" style={{ marginTop: 12 }}>Submit Your First Job →</Link>
         </div>
@@ -77,35 +77,31 @@ export default function ConsumerJobs() {
         {/* Job list */}
         <div className="jobs-list">
           {jobs.map((job) => (
-            <div key={job._id} className={`job-card ${selected?._id === job._id ? "selected" : ""}`}
+            <button type="button" key={job._id} aria-pressed={selected?._id === job._id} className={`job-card ${selected?._id === job._id ? "selected" : ""}`}
               onClick={() => viewJob(job._id)}>
               <div className="job-card-header">
-                <span className="job-task">{job.taskType || "Job"}</span>
-                <span className="job-status-badge" style={{ background: STATUS_COLORS[job.status] + "22", color: STATUS_COLORS[job.status], border: `1px solid ${STATUS_COLORS[job.status]}44` }}>
-                  {job.status}
-                </span>
+                <span className="job-task">{job.taskType === "matrix_multiply" ? "Matrix multiplication" : job.taskType || "Job"}</span>
+                <StatusBadge status={job.status} />
               </div>
-              <div className="job-gpu">🖥️ {job.gpuId?.gpuModel || "GPU"}</div>
+              <div className="job-gpu">{job.gpuId?.gpuModel || "Awaiting assignment"}</div>
               <div className="job-meta">
-                <span>{job.protocol === "real" ? `${job.escrowAmountWei} wei (test ETH)` : `₹${job.price}`}</span>
+                <span>{job.status === "DRAFT" ? "Awaiting quote" : job.protocol === "real" ? `${job.escrowAmountWei} wei (test ETH)` : `₹${job.price}`}</span>
                 <span>{new Date(job.createdAt).toLocaleDateString()}</span>
               </div>
               <div className="job-id">ID: {job._id}</div>
-            </div>
+            </button>
           ))}
         </div>
 
         {/* Job detail panel */}
         {selected && (
-          <div className="job-detail">
+          <section ref={detailRef} tabIndex={-1} className="job-detail" aria-label="Selected job">
             <div className="job-detail-header">
               <h3>Job Detail</h3>
-              <button className="btn-clear" onClick={() => { setSelected(null); setResult(null); }}>✕</button>
+              <button aria-label="Close job detail" className="btn-clear" onClick={() => { setSelected(null); setResult(null); }}>✕</button>
             </div>
             <div className="detail-row"><span>Status</span>
-              <span className="job-status-badge" style={{ background: STATUS_COLORS[selected.status] + "22", color: STATUS_COLORS[selected.status], border: `1px solid ${STATUS_COLORS[selected.status]}44` }}>
-                {selected.status}
-              </span>
+              <StatusBadge status={selected.status} />
             </div>
             <div className="detail-row"><span>Task Type</span><span>{selected.taskType || "—"}</span></div>
             <div className="detail-row"><span>GPU</span><span>{selected.gpuId?.gpuModel || "Pending"} {selected.gpuId?.gpuMemory ? `(${selected.gpuId.gpuMemory}GB)` : ""}</span></div>
@@ -119,7 +115,7 @@ export default function ConsumerJobs() {
             {/* Blockchain info */}
             {selected.blockchainTxHash && (
               <div className="detail-section">
-                <div className="detail-section-title">⛓️ Blockchain</div>
+                <div className="detail-section-title">Blockchain</div>
                 <div className="detail-row"><span>Tx Hash</span>
                   <span className="detail-hash" title={selected.blockchainTxHash}>
                     {selected.blockchainTxHash.substring(0, 18)}…
@@ -136,7 +132,7 @@ export default function ConsumerJobs() {
             {/* Result info */}
             {(selected.resultHash || selected.ipfsCid) && (
               <div className="detail-section">
-                <div className="detail-section-title">📦 Result</div>
+                <div className="detail-section-title">Result</div>
                 {selected.resultHash && (
                   <div className="detail-row"><span>Hash</span>
                     <span className="detail-hash" title={selected.resultHash}>
@@ -152,9 +148,9 @@ export default function ConsumerJobs() {
                   </div>
                 )}
                 {result !== null && (
-                  <pre style={{ margin: "12px 0 0", maxHeight: 260, overflow: "auto", whiteSpace: "pre-wrap" }}>
+                  <details><summary>Result payload</summary><pre className="result-payload">
                     {typeof result === "string" ? result : JSON.stringify(result, null, 2)}
-                  </pre>
+                  </pre></details>
                 )}
               </div>
             )}
@@ -162,29 +158,25 @@ export default function ConsumerJobs() {
             {/* Status-specific notices */}
             {selected.status === "QUEUED" && (
               <div className="form-notice" style={{ marginTop: 12 }}>
-                <span>⏳</span>
                 <span>Job is queued. The scheduler will assign a GPU automatically.</span>
               </div>
             )}
             {selected.status === "ASSIGNED" && (
               <div className="form-notice" style={{ marginTop: 12 }}>
-                <span>🖥️</span>
                 <span>GPU assigned. Waiting for the worker to pick up this job.</span>
               </div>
             )}
             {selected.status === "RUNNING" && (
               <div className="form-notice" style={{ marginTop: 12 }}>
-                <span>🔄</span>
                 <span>Job is executing in its explicitly labeled computation mode.</span>
               </div>
             )}
             {selected.status === "COMPLETED" && (
               <div className="form-notice" style={{ marginTop: 12, borderColor: "#10b981" }}>
-                <span>✅</span>
                 <span>Job completed successfully. Result verified and payment released.</span>
               </div>
             )}
-          </div>
+          </section>
         )}
       </div>
     </div>

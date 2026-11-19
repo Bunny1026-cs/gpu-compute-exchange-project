@@ -1,6 +1,6 @@
 /**
  * pages/ConsumerDashboard.jsx
- * Consumer Dashboard — Phase 5
+ * Consumer dashboard — Phase 5
  *
  * Changes from Phase 4:
  *   - Consumer no longer selects a specific GPU to submit a job.
@@ -15,10 +15,12 @@ import { useAuth } from "../context/AuthContext";
 import { gpuAPI, jobAPI, computeAPI } from "../services/api";
 import ComputeJobActions from "../components/ComputeJobActions";
 import Alert from "../components/Alert";
+import ScriptForm from "../components/ScriptForm";
 import Spinner from "../components/Spinner";
 
 export default function ConsumerDashboard() {
   const { user } = useAuth();
+  const [workload,setWorkload] = useState("matrix");
   const [config, setConfig] = useState(null);
   useEffect(() => { computeAPI.config().then((res) => setConfig(res.data)).catch((error) => setJobError(error.message)); }, []);
 
@@ -40,7 +42,7 @@ export default function ConsumerDashboard() {
   const [jobError, setJobError]     = useState("");
 
   const fetchGPUs = useCallback(async () => {
-    setGL(true); setGE("");
+    setGE("");
     try {
       const res = await gpuAPI.list();
       setGpus(res.data || []);
@@ -103,10 +105,10 @@ export default function ConsumerDashboard() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Consumer Dashboard</h1>
-          <p className="page-subtitle">Welcome, <strong>{user?.name}</strong> — submit GPU compute jobs.</p>
+          <h1 className="page-title">Consumer dashboard</h1>
+          <p className="page-subtitle">Submit workloads and review available compute for {user?.name}.</p>
         </div>
-        <Link to="/consumer/jobs" className="btn btn-ghost btn-sm">📋 View My Jobs</Link>
+        <Link to="/consumer/jobs" className="btn btn-ghost btn-sm">View My Jobs</Link>
       </div>
 
       {jobSuccess && (
@@ -118,7 +120,7 @@ export default function ConsumerDashboard() {
       <div className="dashboard-grid">
         {/* ── Job Submission Form ── */}
         <section className="dash-section">
-          <h2 className="section-label">Submit a Compute Job</h2>
+          <h2 className="section-label">New compute job</h2>
           <p style={{ color: "var(--muted)", fontSize: "0.85rem", marginBottom: 20 }}>
             Specify your requirements. The scheduler will automatically select the best compatible GPU.
           </p>
@@ -126,56 +128,57 @@ export default function ConsumerDashboard() {
           {jobSuccess && <ComputeJobActions job={jobSuccess} consumer refresh={async () => setJobSuccess((await jobAPI.get(jobSuccess._id)).data)} />}
       <Alert type="error" message={jobError} onClose={() => setJobError("")} />
 
-          <form onSubmit={handleSubmit} className="job-form">
-            <p>{!config ? "Loading execution configuration..." : config.executionMode === "real_cpu_test" ? "CPU development test (not GPU execution)" : "Real CUDA GPU execution"} - Matrix multiplication</p>
+          <label>Workload<select aria-label="Workload" className="form-input" value={workload} onChange={e=>setWorkload(e.target.value)}>
+            <option value="matrix">Verified matrix multiplication</option><option value="script">Python batch script</option>
+          </select></label>
+          {workload==="script" ? (config ? <ScriptForm cpuEnabled={config.cpuBatchEnabled} created={setJobSuccess}/> : <Spinner text="Loading runtime profiles…" />) : <form onSubmit={handleSubmit} className="job-form">
+            <p className="workload-mode">{!config ? "Loading execution configuration..." : config.executionMode === "real_cpu_test" ? "CPU development test (not GPU execution)" : "Real CUDA GPU execution"} - Matrix multiplication</p>
             <div className="form-row">
-              <div className="form-group"><label className="form-label">Matrix size (2-1024)</label><input className="form-input" name="size" type="number" min="2" max="1024" value={jobForm.size} onChange={handleChange} required /></div>
-              <div className="form-group"><label className="form-label">Seed</label><input className="form-input" name="seed" type="number" min="0" max="2147483647" value={jobForm.seed} onChange={handleChange} required /></div>
+              <div className="form-group"><label className="form-label" htmlFor="size">Matrix size (2-1024)</label><input className="form-input" id="size" name="size" type="number" min="2" max="1024" value={jobForm.size} onChange={handleChange} required /></div>
+              <div className="form-group"><label className="form-label" htmlFor="seed">Seed</label><input className="form-input" id="seed" name="seed" type="number" min="0" max="2147483647" value={jobForm.seed} onChange={handleChange} required /></div>
             </div>
-            <div className="form-group"><label className="form-label">Reserved minutes (1-10)</label><input className="form-input" name="reservedMinutes" type="number" min="1" max="10" value={jobForm.reservedMinutes} onChange={handleChange} required /></div>
-            <p>Rate: {config?.rateWeiPerMinute || "Loading..."} wei/min. Local Hardhat test ETH only.</p>
+            <div className="form-group"><label className="form-label" htmlFor="reservedMinutes">Reserved minutes (1-10)</label><input className="form-input" id="reservedMinutes" name="reservedMinutes" type="number" min="1" max="10" value={jobForm.reservedMinutes} onChange={handleChange} required /></div>
+            <p className="rate-note">{config ? `Reservation rate · ${config.rateWeiPerMinute} wei/min in local test ETH` : "Retrieving reservation rate…"}</p>
             <div className="form-notice">
-              <span>⚙️</span>
               <strong>GPU Requirements (optional)</strong>
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Min GPU Memory (GB)</label>
-                <input className="form-input" type="number" name="requiredGpuMemory" value={jobForm.requiredGpuMemory}
+                <label className="form-label" htmlFor="requiredGpuMemory">Min GPU Memory (GB)</label>
+                <input className="form-input" type="number" id="requiredGpuMemory" name="requiredGpuMemory" value={jobForm.requiredGpuMemory}
                   onChange={handleChange} placeholder="e.g. 16" min="0" disabled={submitting} />
               </div>
               <div className="form-group">
-                <label className="form-label">Min CUDA Version</label>
-                <input className="form-input" name="requiredCudaVersion" value={jobForm.requiredCudaVersion}
+                <label className="form-label" htmlFor="requiredCudaVersion">Min CUDA Version</label>
+                <input className="form-input" id="requiredCudaVersion" name="requiredCudaVersion" value={jobForm.requiredCudaVersion}
                   onChange={handleChange} placeholder="e.g. 12.0" disabled={submitting} />
               </div>
             </div>
 
-            <div className="form-notice">Submit to receive the exact quote. Funding is required before scheduling. The workload is fixed at submission.</div>
+            <p className="form-hint">Submission fixes the workload. Review the escrow quote before funding.</p>
 
             <button className="btn btn-primary btn-full" type="submit" disabled={submitting}>
               {submitting ? "Submitting…" : "Submit Job →"}
             </button>
-          </form>
+          </form>}
         </section>
 
         {/* ── GPU Marketplace (informational) ── */}
         <section className="dash-section">
           <div className="section-header">
             <h2 className="section-label">Available GPUs</h2>
-            <button className="btn btn-ghost btn-sm" onClick={fetchGPUs} disabled={gpusLoading}>↻</button>
+            <button className="btn btn-ghost btn-sm" onClick={fetchGPUs} disabled={gpusLoading}>Refresh</button>
           </div>
           <p style={{ color: "var(--muted)", fontSize: "0.82rem", marginBottom: 16 }}>
-            Reference only — the scheduler automatically picks the best match for your requirements.
+            Online workers currently accepting reservations.
           </p>
 
           {gpusLoading && <Spinner text="Loading GPUs…" />}
           {gpusError  && <Alert type="error" message={gpusError} />}
 
-          {!gpusLoading && gpus.length === 0 && (
+          {!gpusLoading && !gpusError && gpus.length === 0 && (
             <div className="empty-state" style={{ padding: "30px 0" }}>
-              <span>🖥️</span>
               <p>No GPUs available right now.</p>
             </div>
           )}
@@ -190,10 +193,9 @@ export default function ConsumerDashboard() {
                   </span>
                 </div>
                 <div className="gpu-specs">
-                  <span>💾 {gpu.gpuMemory} GB</span>
-                  <span>⚡ CUDA {gpu.cudaVersion}</span>
+                  {gpu.executionMode === "real_gpu" && <><span>{gpu.gpuMemory} GB</span><span>CUDA {gpu.cudaVersion}</span></>}
                 </div>
-                <div className="gpu-price">{config?.rateWeiPerMinute} wei/min (local test ETH)</div>
+                <div className="gpu-price">{gpu.rateWeiPerMinute || config?.rateWeiPerMinute} wei/min (local test ETH)</div>
               </div>
             ))}
           </div>
